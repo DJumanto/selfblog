@@ -13,7 +13,7 @@
     <meta name="description" content="🖊️Author: DJumanto🛡️Team: proof by feeling📖Note: This Writeup contains solver for SelfLove challenge in NCW CTF 2025  TL;DRThis write-up explains how we can escalate a self‑XSS, combined with CSRF,">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Self-Love NCW 2025">
-<meta property="og:url" content="https://djumanto.github.io/selfblog/2025/12/11/ctf/web/NCW2025/index.html">
+<meta property="og:url" content="https://djumanto.github.io/2025/12/11/ctf/web/NCW2025/index.html">
 <meta property="og:site_name" content="DJumanto Sec Blog">
 <meta property="og:description" content="🖊️Author: DJumanto🛡️Team: proof by feeling📖Note: This Writeup contains solver for SelfLove challenge in NCW CTF 2025  TL;DRThis write-up explains how we can escalate a self‑XSS, combined with CSRF,">
 <meta property="og:locale" content="en_US">
@@ -27,7 +27,7 @@
 <meta name="twitter:image" content="https://hackmd.io/_uploads/ryBlz0MW-x.png">
     <meta http-equiv="Cache-control" content="no-cache">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <link rel="icon" href="/selfblog/assets/favicon.ico">
+    <link rel="icon" href="/assets/favicon.ico">
     <title>Self-Love NCW 2025 · DJumanto Sec Blog</title>
     <!-- /*! loadCSS. [c]2017 Filament Group, Inc. MIT License */
 /* This file is meant as a standalone workflow for
@@ -141,7 +141,7 @@
     <style type="text/css">
     @font-face {
         font-family: 'Oswald-Regular';
-        src: url("/selfblog/font/Oswald-Regular.ttf");
+        src: url("/font/Oswald-Regular.ttf");
     }
 
     body {
@@ -196,12 +196,12 @@
 </style>
 
     <link id="stylesheet-fancybox" rel="preload" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.36/dist/fancybox/fancybox.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link id="stylesheet-base" rel="preload" href="/selfblog/css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link id="stylesheet-mobile" rel="preload" href="/selfblog/css/mobile.css" as="style" onload="this.onload=null;this.rel='stylesheet';this.media='screen and (max-width: 960px)'">
-    <link id="stylesheet-theme-dark" rel="preload" href="/selfblog/css/dark.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link id="stylesheet-base" rel="preload" href="/css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link id="stylesheet-mobile" rel="preload" href="/css/mobile.css" as="style" onload="this.onload=null;this.rel='stylesheet';this.media='screen and (max-width: 960px)'">
+    <link id="stylesheet-theme-dark" rel="preload" href="/css/dark.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" as="script">
-    <link rel="preload" href="/selfblog/scripts/main.js" as="script">
-    <link rel="preload" href="/selfblog/font/Oswald-Regular.ttf" as="font" crossorigin>
+    <link rel="preload" href="/scripts/main.js" as="script">
+    <link rel="preload" href="/font/Oswald-Regular.ttf" as="font" crossorigin>
     <link rel="preload" href="https://at.alicdn.com/t/font_327081_1dta1rlogw17zaor.woff" as="font" crossorigin>
     <!-- algolia -->
     <!-- 百度统计  -->
@@ -213,7 +213,7 @@
     <script type="text/javascript">
         if (typeof window.$ == undefined) {
             console.warn('jquery load from jsdelivr failed, will load local script')
-            document.write('<script src="/selfblog/lib/jquery.min.js" />')
+            document.write('<script src="/lib/jquery.min.js" />')
         }
     </script>
         <body class="post-body">
@@ -237,13 +237,13 @@
         </span>
         <!-- back to home page text -->
         <span class="home-link header-element">
-            <a href="/selfblog/">DJumanto Sec Blog</a>
+            <a href="/">DJumanto Sec Blog</a>
         </span>
     </div>
     <!-- toggle banner -->
     <div class="banner">
         <div class="blog-title header-element">
-            <a href="/selfblog/">DJumanto Sec Blog</a>
+            <a href="/">DJumanto Sec Blog</a>
         </div>
         <div class="post-title header-element">
             <a href="#" class="post-name">Self-Love NCW 2025</a>
@@ -268,7 +268,7 @@
     <!-- 主页  -->
     <!-- 404页  -->
     <div class="site-intro-placeholder"></div>
-    <div class="site-intro-img" style="background-image: url(/selfblog/intro/post-bg.jpg)"></div>
+    <div class="site-intro-img" style="background-image: url(/intro/post-bg.jpg)"></div>
     <div class="site-intro-meta">
         <!-- 标题  -->
         <h1 class="intro-title">
@@ -437,14 +437,14 @@
     [
       'https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.min.js',
       'https://cdn.bootcss.com/webfont/1.6.28/webfontloader.js',
-      "/selfblog/lib/webfontloader.min.js",
+      "/lib/webfontloader.min.js",
     ],
     asyncCb,
     asyncErr
   )
 </script>
 
-            <img class="loading" src="/selfblog/assets/loading.svg" style="display: block; margin: 6rem auto 0 auto; width: 6rem; height: 6rem;" alt="loading">
+            <img class="loading" src="/assets/loading.svg" style="display: block; margin: 6rem auto 0 auto; width: 6rem; height: 6rem;" alt="loading">
             <div class="container container-unloaded">
                 <main class="main post-page">
     <article class="article-entry">
@@ -512,7 +512,7 @@
     <ul class="post-paginator">
         <li class="next">
                 <div class="nextSlogan">Next Post</div>
-                <a href="/selfblog/2025/12/11/ctf/web/HTBUNIVCTF2024/" title="HTB University CTF 2024">
+                <a href="/2025/12/11/ctf/web/HTBUNIVCTF2024/" title="HTB University CTF 2024">
                     <div class="nextTitle">HTB University CTF 2024</div>
                 </a>
         </li>
@@ -547,7 +547,7 @@
         <div class="social">
                             <a href="//github.com/DJumanto" class="iconfont-archer github" target="_blank" title="github"></a>
                 <a href="//www.linkedin.com/in/alfafakhrur/" class="iconfont-archer linkedin" target="_blank" title="linkedin"></a>
-                <a href="/selfblog/DJumanto" class="iconfont-archer discord" target="_blank" title="discord"></a>
+                <a href="/DJumanto" class="iconfont-archer discord" target="_blank" title="discord"></a>
 
         </div>
     <!-- powered by Hexo  -->
@@ -597,27 +597,27 @@
             <ul class="year-list">
         <li class="archive-post-item">
             <span class="archive-post-date">12/11</span>
-            <a class="archive-post-title" href="/selfblog/2025/12/11/ctf/web/CJN2024/">Cyberjawara National 2024 Quals</a>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/CJN2024/">Cyberjawara National 2024 Quals</a>
         </li>
         <li class="archive-post-item">
             <span class="archive-post-date">12/11</span>
-            <a class="archive-post-title" href="/selfblog/2025/12/11/ctf/web/HACKTODAY2025/">Hacktoday 2025</a>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/HACKTODAY2025/">Hacktoday 2025</a>
         </li>
         <li class="archive-post-item">
             <span class="archive-post-date">12/11</span>
-            <a class="archive-post-title" href="/selfblog/2025/12/11/ctf/web/AMATEURS2025/">Amateurs 2025</a>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/AMATEURS2025/">Amateurs 2025</a>
         </li>
         <li class="archive-post-item">
             <span class="archive-post-date">12/11</span>
-            <a class="archive-post-title" href="/selfblog/2025/12/11/ctf/web/HTBUNIVCTF2024/">HTB University CTF 2024</a>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/HTBUNIVCTF2024/">HTB University CTF 2024</a>
         </li>
         <li class="archive-post-item">
             <span class="archive-post-date">12/11</span>
-            <a class="archive-post-title" href="/selfblog/2025/12/11/ctf/web/NCW2025/">Self-Love NCW 2025</a>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/NCW2025/">Self-Love NCW 2025</a>
         </li>
         <li class="archive-post-item">
             <span class="archive-post-date">12/11</span>
-            <a class="archive-post-title" href="/selfblog/2025/12/11/ctf/web/SECURINETS2025/">Securinets 2025</a>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/SECURINETS2025/">Securinets 2025</a>
         </li>
             </ul>
     </div>
@@ -701,12 +701,12 @@
 
         <!-- site-meta -->
         <script>
-    var siteMetaRoot = "/selfblog/"
+    var siteMetaRoot = "/"
     if (siteMetaRoot === "undefined") {
         siteMetaRoot = '/'
     }
     var siteMeta = {
-        url: "https://djumanto.github.io/selfblog",
+        url: "https://djumanto.github.io",
         root: siteMetaRoot,
         author: "DJumanto"
     }
@@ -716,14 +716,14 @@
         <!-- Custom Font -->
 
         <!-- main func -->
-        <script src="/selfblog/scripts/main.js"></script>
+        <script src="/scripts/main.js"></script>
         <!-- fancybox -->
         <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.36/dist/fancybox/fancybox.umd.js" onload="window.Fancybox.bind('[data-fancybox]')" defer></script>
         <!-- algolia -->
         <!-- busuanzi -->
             <script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
         <!-- async load share.js -->
-            <script src="/selfblog/scripts/share.js" async></script>
+            <script src="/scripts/share.js" async></script>
         <!-- mermaid -->
     </body>
 </html>
