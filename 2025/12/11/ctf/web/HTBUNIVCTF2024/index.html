@@ -624,13 +624,13 @@
 
 <p>But it didn’t give any green lamp. At this point we almost believe that we <strong>must</strong> solve this challenge by exploiting a 0-day. But we tried to observe more, maybe there’s another vector that we can use to register. Knowing there’s a resend verify code functionality, we thought: </p>
 <blockquote>
-<p><em>“Can we register with a valid user, then resend the code to email we control (<a href="mailto:&#116;&#101;&#x73;&#x74;&#x40;&#101;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#104;&#x74;&#98;">test@email.htb</a>)?”</em></p>
+<p><em>“Can we register with a valid user, then resend the code to email we control (<a href="mailto:&#x74;&#101;&#115;&#x74;&#x40;&#101;&#109;&#x61;&#x69;&#108;&#x2e;&#x68;&#x74;&#x62;">test@email.htb</a>)?”</em></p>
 </blockquote>
 <p>Below is detailed tactic:</p>
 <ol>
 <li>Register as <code>[someone]@interstellar.htb</code></li>
 <li>resend verification code to <code>[&quot;[someone]@interstellar.htb&quot;, &quot;test@email.htb&quot;]</code></li>
-<li>Get the <code>[someone]@interstellar.htb</code> verification code in <a href="mailto:&#116;&#101;&#115;&#x74;&#64;&#101;&#109;&#x61;&#105;&#x6c;&#46;&#x68;&#x74;&#98;">test@email.htb</a> mailbox</li>
+<li>Get the <code>[someone]@interstellar.htb</code> verification code in <a href="mailto:&#x74;&#101;&#115;&#x74;&#64;&#x65;&#x6d;&#x61;&#x69;&#108;&#x2e;&#x68;&#x74;&#x62;">test@email.htb</a> mailbox</li>
 </ol>
 <p>Because if we take a look at the nodemailer sendMail mail options structure, we can use array of target addresses.</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">interface <span class="title class_">Options</span> &#123;</span><br><span class="line">        <span class="comment">/** The e-mail address of the sender. All e-mail addresses can be plain &#x27;sender<span class="doctag">@server</span>.com&#x27; or formatted &#x27;Sender Name &lt;sender<span class="doctag">@server</span>.com&gt;&#x27; */</span></span><br><span class="line">        <span class="keyword">from</span>?: string | <span class="title class_">Address</span> | <span class="literal">undefined</span>;</span><br><span class="line">        <span class="comment">/** An e-mail address that will appear on the Sender: field */</span></span><br><span class="line">        sender?: string | <span class="title class_">Address</span> | <span class="literal">undefined</span>;</span><br><span class="line">        <span class="comment">/** Comma separated list or an array of recipients e-mail addresses that will appear on the To: field */</span></span><br><span class="line">        to?: string | <span class="title class_">Address</span> | <span class="title class_">Array</span>&lt;string | <span class="title class_">Address</span>&gt; | <span class="literal">undefined</span>;</span><br><span class="line">        ...</span><br></pre></td></tr></table></figure>
@@ -642,7 +642,7 @@
 <p>resend verif code:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;email&quot;:</span><br><span class="line">        [</span><br><span class="line">            &quot;kutikula@interstellar.htb&quot;,</span><br><span class="line">            &quot;test@email.htb&quot;</span><br><span class="line">        ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>verif code in <a href="mailto:&#116;&#101;&#115;&#x74;&#64;&#101;&#109;&#x61;&#105;&#108;&#x2e;&#x68;&#x74;&#98;">test@email.htb</a> mailbox:<br><img src="https://hackmd.io/_uploads/HkV4telBJe.png" alt="image"></p>
+<p>verif code in <a href="mailto:&#116;&#101;&#115;&#x74;&#64;&#101;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#x68;&#x74;&#x62;">test@email.htb</a> mailbox:<br><img src="https://hackmd.io/_uploads/HkV4telBJe.png" alt="image"></p>
 <p>submit verification code for valid user</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;email&quot;:&quot;kutikula@interstellar.htb&quot;,</span><br><span class="line">    &quot;code&quot;:&quot;2b176b816ce9830a5a1a8b7200f328da&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
